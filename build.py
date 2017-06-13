@@ -29,14 +29,14 @@ def apply_transformation(loader, node, transform):
 def get_constructor(transform):
     return lambda loader, node: apply_transformation(loader, node, transform)
 
-def build_yaml_macros(input):
+def build_yaml_macros(input, macros_search_path):
     for token in yaml.scan(input):
         if isinstance(token, yaml.tokens.DocumentStartToken):
             break
         elif isinstance(token, yaml.tokens.DirectiveToken) and token.name == 'TAG':
             handle, prefix = token.value
             if not prefix.startswith('tag:yaml-macros:'): break
-            macro_path = prefix.split(':')[2]
+            macro_path = path.join(macros_search_path, prefix.split(':')[2])
             for name, transform in load_macros(macro_path):
                 yaml.add_constructor(prefix+name, get_constructor(transform))
 
