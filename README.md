@@ -27,3 +27,5 @@ def fancy(str):
 ---
 text: === Title ===
 ```
+
+For a much more detailed example, see <examples/sql_syntax>.
