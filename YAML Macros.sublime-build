@@ -1,0 +1,4 @@
+{
+    "target": "build_yaml_macros",
+    "selector": "source.yaml"
+}
