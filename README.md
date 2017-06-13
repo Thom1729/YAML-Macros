@@ -4,7 +4,7 @@ A macro system for YAML files powered by Python. Intended for Sublime Text devel
 
 ### Usage Example
 
-[Source file](examples/example.yaml.yaml-macros):
+[Source file](examples/basic/example.yaml.yaml-macros):
 
 ```yaml
 %YAML 1.2
@@ -13,14 +13,14 @@ A macro system for YAML files powered by Python. Intended for Sublime Text devel
 text: !fancy title
 ```
 
-[Macro file](examples/example_macros.py):
+[Macro file](examples/basic/example_macros.py):
 
 ```python
 def fancy(str):
     return '=== %s ===' % str.capitalize()
 ```
 
-[Output](examples/example.yaml):
+[Output](examples/basic/example.yaml):
 
 ```yaml
 %YAML 1.2
