@@ -3,6 +3,7 @@
 ---
 name: SQL (YAML Macros example)
 scope: source.sql
+hidden: true
 
 variables:
   identifier: '\b[A-Za-z_]\w*\b'

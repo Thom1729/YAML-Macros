@@ -121,6 +121,7 @@ contexts:
     - match: '"'
       pop: true
       scope: punctuation.definition.string.end.sql
+hidden: true
 name: SQL (YAML Macros example)
 scope: source.sql
 variables:
