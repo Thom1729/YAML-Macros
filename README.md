@@ -8,7 +8,7 @@ A macro system for YAML files powered by Python. Intended for Sublime Text devel
 
 ```yaml
 %YAML 1.2
-%TAG ! macro/example_macros/
+%TAG ! tag:yaml-macros:example_macros/
 ---
 text: !fancy title
 ```
