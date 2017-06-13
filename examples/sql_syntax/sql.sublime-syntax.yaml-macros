@@ -1,0 +1,91 @@
+%YAML 1.2
+%TAG ! tag:yaml-macros:sql_macros/
+---
+name: SQL (YAML Macros example)
+scope: source.sql
+
+variables:
+  identifier: '\b[A-Za-z_]\w*\b'
+  reserved_words: !word select|distinct|from|as
+
+  var_name: (?:(?!{{reserved_words}}){{identifier}})
+
+contexts:
+  main:
+    - match: ';'
+      scope: punctuation.terminator.statement.sql
+
+    - match: (?=\S)
+      push: query
+
+  prototype:
+    - include: comments
+
+  comments:
+    - match: (--).*
+      scope: comment.line.sql
+      captures:
+        1: punctuation.definition.comment.sql
+
+  else-pop:
+    - match: (?=\S)
+      pop: true
+
+  query:
+    - meta_scope: meta.query.sql
+    - !pop_on ';'
+
+    - match: !word select
+      scope: keyword.other.select.sql
+      push:
+        - !meta meta.select.sql
+        - select-list
+        - !expect [ !word distinct, keyword.other.sql ]
+
+    - match: !word from
+      scope: keyword.other.from.sql
+      push:
+        - !meta meta.from.sql
+        - !expect_identifier variable.other.table.sql
+
+  select-list: !stack [ select-list-rest, select-list-item ]
+
+  select-list-rest:
+    - match: ','
+      scope: punctuation.separator.comma.sql
+      push: select-list-item
+    - include: else-pop
+
+  select-list-item: !stack
+    - !meta meta.select-item.sql
+    - !expect_identifier entity.name.alias.sql
+    - !expect [ !word as, keyword.other.sql ]
+    - expression
+
+  expression: !stack [ expression-tail, expression-head ]
+
+  expression-tail:
+    - include: infix-operators
+    - include: else-pop
+
+  expression-head:
+    - match: \*
+      scope: keyword.other.star.sql
+      pop: true
+
+    - include: variable
+    - include: literal-number
+
+    - include: else-pop
+
+  variable: !identifier variable.other.table.sql
+
+  literal-number:
+    - match: \b\d+\b
+      scope: constant.numeric.sql
+      pop: true
+
+  infix-operators:
+    - match: '[-+*/]'
+      scope: keyword.operator.numeric.sql
+      push: expression-head
