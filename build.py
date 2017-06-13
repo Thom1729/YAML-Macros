@@ -29,20 +29,14 @@ def apply_transformation(loader, node, transform):
 def get_constructor(transform):
     return lambda loader, node: apply_transformation(loader, node, transform)
 
-
-
-
-
-def build_yaml_macros(
-    input
-):
+def build_yaml_macros(input):
     for token in yaml.scan(input):
         if isinstance(token, yaml.tokens.DocumentStartToken):
             break
         elif isinstance(token, yaml.tokens.DirectiveToken) and token.name == 'TAG':
             handle, prefix = token.value
-            if not prefix.startswith('macro/'): break
-            macro_path = prefix.split('/')[1]
+            if not prefix.startswith('tag:yaml-macros:'): break
+            macro_path = prefix.split(':')[2]
             for name, transform in load_macros(macro_path):
                 yaml.add_constructor(prefix+name, get_constructor(transform))
 
@@ -53,35 +47,3 @@ def build_yaml_macros(
         default_flow_style=False,
         tags=False,
     )
-
-
-
-
-# filename = sys.argv[1]
-
-# output_path, extension = path.splitext(path.basename(filename))
-
-# if extension != '.yaml-macros': raise "Not a .yaml-macros file!"
-
-# input_file = open(filename, 'r')
-
-# for token in yaml.scan(input_file):
-#     if isinstance(token, yaml.tokens.DocumentStartToken):
-#         break
-#     elif isinstance(token, yaml.tokens.DirectiveToken) and token.name == 'TAG':
-
-#         handle, prefix = token.value
-#         if not prefix.startswith('macro:'): break
-#         macro_path = prefix.split(':')[1]
-
-#         for name, transform in load_macros(macro_path):
-#             yaml.add_constructor(prefix+name, get_constructor(transform))
-
-# syntax = yaml.load(open(filename, 'r'))
-
-# output_file = open(output_path, 'w')
-# yaml.dump(syntax,
-#     stream=output_file,
-#     version=(1,2),
-#     tags=False,
-# )
