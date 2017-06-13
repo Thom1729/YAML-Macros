@@ -7,13 +7,6 @@ def meta(scope):
         { "match": r'', "pop": True },
     ]
 
-# def meta_set(scope):
-#     return [
-#         { "clear_scopes": 1 },
-#         { "meta_scope": scope },
-#         { "match": r'', "pop": True },
-#     ]
-
 def expect(expr, scope):
     return [
         { "match": expr, "scope": scope, "pop": True },
