@@ -2,6 +2,10 @@
 
 A macro system for YAML files powered by Python. Designed for Sublime Text syntax development.
 
+## Installation
+
+YAML Macros can be installed via [Package Control](https://packagecontrol.io/installation). You can also `git clone` this repository into your packages directory.
+
 ## Overview
 
 Sublime Text syntax definitions can often have a lot of boilerplate and repeated code. Consider this simple syntax that highlights SQL keywords:
