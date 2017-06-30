@@ -3,14 +3,14 @@ import sublime_plugin
 
 from os import path
 
-from . import build
+from .src.build import build_yaml_macros
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
     def run(self):
         view = self.window.active_view();
         source_path = view.file_name()
 
-        result = build.build_yaml_macros(
+        result = build_yaml_macros(
             view.substr( sublime.Region(0, view.size()) ),
             path.dirname(source_path),
         )

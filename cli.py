@@ -2,15 +2,11 @@
 
 import os
 import sys
-from os import path
-import argparse
+from argparse import ArgumentParser
 
-sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+from .src.build import build_yaml_macros
 
-from build import build_yaml_macros
-
-
-parser = argparse.ArgumentParser()
+parser = ArgumentParser()
 
 parser.add_argument(
     "-m", "--macros-path",

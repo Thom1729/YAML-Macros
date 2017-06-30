@@ -1,37 +1,13 @@
 %YAML 1.2
 ---
+name: SQL (YAML Macros example)
+scope: source.sql
+hidden: true
+variables:
+  identifier: \b[A-Za-z_]\w*\b
+  reserved_words: (?:\b(?i:select|distinct|from|as)\b)
+  var_name: (?:(?!{{reserved_words}}){{identifier}})
 contexts:
-  comments:
-  - captures:
-      1: punctuation.definition.comment.sql
-    match: (--).*
-    scope: comment.line.sql
-  else-pop:
-  - match: (?=\S)
-    pop: true
-  expression:
-  - match: (?=\S)
-    set: !!python/tuple
-    - expression-tail
-    - expression-head
-  expression-head:
-  - match: \*
-    pop: true
-    scope: keyword.other.star.sql
-  - include: variable
-  - include: literal-number
-  - include: else-pop
-  expression-tail:
-  - include: infix-operators
-  - include: else-pop
-  infix-operators:
-  - match: '[-+*/]'
-    push: expression-head
-    scope: keyword.operator.numeric.sql
-  literal-number:
-  - match: \b\d+\b
-    pop: true
-    scope: constant.numeric.sql
   main:
   - match: ;
     scope: punctuation.terminator.statement.sql
@@ -39,11 +15,20 @@ contexts:
     push: query
   prototype:
   - include: comments
+  comments:
+  - match: (--).*
+    scope: comment.line.sql
+    captures:
+      1: punctuation.definition.comment.sql
+  else-pop:
+  - match: (?=\S)
+    pop: true
   query:
   - meta_scope: meta.query.sql
   - match: (?=(?:;))
     pop: true
   - match: (?:\b(?i:select)\b)
+    scope: keyword.other.select.sql
     push:
     - - meta_scope: meta.select.sql
       - match: ''
@@ -54,8 +39,8 @@ contexts:
         scope: keyword.other.sql
       - match: (?=\S)
         pop: true
-    scope: keyword.other.select.sql
   - match: (?:\b(?i:from)\b)
+    scope: keyword.other.from.sql
     push:
     - - meta_scope: meta.from.sql
       - match: ''
@@ -73,12 +58,16 @@ contexts:
           scope: punctuation.definition.string.end.sql
       - match: (?=\S)
         pop: true
-    scope: keyword.other.from.sql
   select-list:
   - match: (?=\S)
     set: !!python/tuple
     - select-list-rest
     - select-list-item
+  select-list-rest:
+  - match: ','
+    scope: punctuation.separator.comma.sql
+    push: select-list-item
+  - include: else-pop
   select-list-item:
   - match: (?=\S)
     set: !!python/tuple
@@ -104,10 +93,20 @@ contexts:
       - match: (?=\S)
         pop: true
     - expression
-  select-list-rest:
-  - match: ','
-    push: select-list-item
-    scope: punctuation.separator.comma.sql
+  expression:
+  - match: (?=\S)
+    set: !!python/tuple
+    - expression-tail
+    - expression-head
+  expression-tail:
+  - include: infix-operators
+  - include: else-pop
+  expression-head:
+  - match: \*
+    scope: keyword.other.star.sql
+    pop: true
+  - include: variable
+  - include: literal-number
   - include: else-pop
   variable:
   - match: '{{var_name}}'
@@ -121,10 +120,11 @@ contexts:
     - match: '"'
       pop: true
       scope: punctuation.definition.string.end.sql
-hidden: true
-name: SQL (YAML Macros example)
-scope: source.sql
-variables:
-  identifier: \b[A-Za-z_]\w*\b
-  reserved_words: (?:\b(?i:select|distinct|from|as)\b)
-  var_name: (?:(?!{{reserved_words}}){{identifier}})
+  literal-number:
+  - match: \b\d+\b
+    scope: constant.numeric.sql
+    pop: true
+  infix-operators:
+  - match: '[-+*/]'
+    scope: keyword.operator.numeric.sql
+    push: expression-head
