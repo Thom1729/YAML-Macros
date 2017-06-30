@@ -2,6 +2,9 @@ import yaml
 from os import path
 import sys
 import imp
+from inspect import signature, Parameter
+
+from .yamlordereddictloader import yamlordereddictloader
 
 def load_macros(macro_path):
     search_path, name = path.split(path.abspath(macro_path))
@@ -22,7 +25,13 @@ def apply_transformation(loader, node, transform):
         elif isinstance(node, yaml.SequenceNode):
             return transform(*loader.construct_sequence(node))
         elif isinstance(node, yaml.MappingNode):
-            return transform(**loader.construct_mapping(node))
+            if any(
+                param.kind == Parameter.VAR_POSITIONAL
+                for name, param in signature(transform).parameters.items()
+            ):
+                return transform(*loader.construct_mapping(node).items())
+            else:
+                return transform(**loader.construct_mapping(node))
     except TypeError as e:
         raise TypeError('Failed to transform node: {}\n{}'.format(str(e), node))
 
@@ -40,10 +49,11 @@ def build_yaml_macros(input, macros_search_path):
             for name, transform in load_macros(macro_path):
                 yaml.add_constructor(prefix+name, get_constructor(transform))
 
-    syntax = yaml.load(input)
+    syntax = yaml.load(input, Loader=yamlordereddictloader.Loader)
 
     return yaml.dump(syntax,
         version=(1,2),
         default_flow_style=False,
         tags=False,
+        Dumper=yamlordereddictloader.Dumper
     )
