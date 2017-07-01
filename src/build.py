@@ -1,9 +1,6 @@
-# import yaml
 from os import path
-import sys
 import imp
 from inspect import signature, Parameter
-from io import StringIO
 
 import ruamel.yaml
 
@@ -11,7 +8,7 @@ def load_macros(macro_path):
     search_path, name = path.split(path.abspath(macro_path))
 
     fileObject, file, description = imp.find_module( name, [ search_path ] )
-    module = imp.load_module('macros', fileObject, file, description)
+    module = imp.load_module(name, fileObject, file, description)
 
     return [
         (name.rstrip('_'), func)
@@ -30,6 +27,7 @@ def apply_transformation(loader, node, transform):
                 param.kind == Parameter.VAR_POSITIONAL
                 for name, param in signature(transform).parameters.items()
             ):
+                # Before Python 3.6, **kwargs will not preserve order.
                 return transform(*loader.construct_mapping(node).items())
             else:
                 return transform(**loader.construct_mapping(node))
@@ -39,7 +37,7 @@ def apply_transformation(loader, node, transform):
 def get_constructor(transform):
     return lambda loader, node: apply_transformation(loader, node, transform)
 
-def build_yaml_macros(input, macros_search_path):
+def build_yaml_macros(input, output, macros_search_path):
     yaml = ruamel.yaml.YAML()
     yaml.version = (1,2)
 
@@ -51,11 +49,8 @@ def build_yaml_macros(input, macros_search_path):
             if not prefix.startswith('tag:yaml-macros:'): break
             macro_path = path.join(macros_search_path, prefix.split(':')[2])
             for name, transform in load_macros(macro_path):
-                # yaml.constructor.add_constructor(prefix+name, get_constructor(transform))
                 yaml.constructor.add_constructor(handle+name, get_constructor(transform))
 
     syntax = yaml.load(input)
 
-    output = StringIO()
     yaml.dump(syntax, stream=output)
-    return output.getvalue()
