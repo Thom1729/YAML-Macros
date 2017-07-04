@@ -1,7 +1,7 @@
 {
     "*": {
         "*": [
-            "pyyaml"
+            "ruamel-yaml"
         ]
     }
 }

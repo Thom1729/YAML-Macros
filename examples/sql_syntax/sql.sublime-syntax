@@ -3,127 +3,148 @@
 name: SQL (YAML Macros example)
 scope: source.sql
 hidden: true
+
 variables:
   identifier: \b[A-Za-z_]\w*\b
   reserved_words: (?:\b(?i:select|distinct|from|as)\b)
+
   var_name: (?:(?!{{reserved_words}}){{identifier}})
+
 contexts:
   main:
   - match: ;
     scope: punctuation.terminator.statement.sql
+
   - match: (?=\S)
     push: query
+
   prototype:
   - include: comments
+
   comments:
   - match: (--).*
     scope: comment.line.sql
     captures:
       1: punctuation.definition.comment.sql
+
   else-pop:
   - match: (?=\S)
     pop: true
+
   query:
   - meta_scope: meta.query.sql
-  - match: (?=(?:;))
-    pop: true
+  - pop: true
+    match: (?=(?:;))
+
   - match: (?:\b(?i:select)\b)
     scope: keyword.other.select.sql
     push:
     - - meta_scope: meta.select.sql
-      - match: ''
-        pop: true
+      - pop: true
+        match: ''
     - select-list
-    - - match: (?:\b(?i:distinct)\b)
+    - - scope: keyword.other.sql
         pop: true
-        scope: keyword.other.sql
-      - match: (?=\S)
-        pop: true
+        match: (?:\b(?i:distinct)\b)
+      - pop: true
+        match: (?=\S)
+
   - match: (?:\b(?i:from)\b)
     scope: keyword.other.from.sql
     push:
     - - meta_scope: meta.from.sql
-      - match: ''
+      - pop: true
+        match: ''
+    -                        
+
+      - scope: variable.other.table.sql
         pop: true
-    - - match: '{{var_name}}'
-        pop: true
-        scope: variable.other.table.sql
-      - match: '"'
-        scope: punctuation.definition.string.begin.sql
+        match: '{{var_name}}'
+      - scope: punctuation.definition.string.begin.sql
+        match: '"'
         set:
         - meta_scope: meta.string.sql
         - meta_content_scope: variable.other.table.sql
-        - match: '"'
+        - scope: punctuation.definition.string.end.sql
           pop: true
-          scope: punctuation.definition.string.end.sql
-      - match: (?=\S)
-        pop: true
+          match: '"'
+      - pop: true
+        match: (?=\S)
   select-list:
   - match: (?=\S)
-    set: !!python/tuple
+    set:
     - select-list-rest
     - select-list-item
+
   select-list-rest:
   - match: ','
     scope: punctuation.separator.comma.sql
     push: select-list-item
   - include: else-pop
+
   select-list-item:
   - match: (?=\S)
-    set: !!python/tuple
+    set:
     - - meta_scope: meta.select-item.sql
-      - match: ''
+      - pop: true
+        match: ''
+    - - scope: entity.name.alias.sql
         pop: true
-    - - match: '{{var_name}}'
-        pop: true
-        scope: entity.name.alias.sql
-      - match: '"'
-        scope: punctuation.definition.string.begin.sql
+        match: '{{var_name}}'
+      - scope: punctuation.definition.string.begin.sql
+        match: '"'
         set:
         - meta_scope: meta.string.sql
         - meta_content_scope: entity.name.alias.sql
-        - match: '"'
+        - scope: punctuation.definition.string.end.sql
           pop: true
-          scope: punctuation.definition.string.end.sql
-      - match: (?=\S)
+          match: '"'
+      - pop: true
+        match: (?=\S)
+    - - scope: keyword.other.sql
         pop: true
-    - - match: (?:\b(?i:as)\b)
-        pop: true
-        scope: keyword.other.sql
-      - match: (?=\S)
-        pop: true
+        match: (?:\b(?i:as)\b)
+      - pop: true
+        match: (?=\S)
     - expression
   expression:
   - match: (?=\S)
-    set: !!python/tuple
+    set:
     - expression-tail
     - expression-head
+
   expression-tail:
   - include: infix-operators
   - include: else-pop
+
   expression-head:
   - match: \*
     scope: keyword.other.star.sql
     pop: true
+
   - include: variable
   - include: literal-number
+
   - include: else-pop
-  variable:
-  - match: '{{var_name}}'
-    pop: true
-    scope: variable.other.table.sql
-  - match: '"'
-    scope: punctuation.definition.string.begin.sql
-    set:
-    - meta_scope: meta.string.sql
-    - meta_content_scope: variable.other.table.sql
-    - match: '"'
+
+  variable:             
+
+    - scope: variable.other.table.sql
       pop: true
-      scope: punctuation.definition.string.end.sql
+      match: '{{var_name}}'
+    - scope: punctuation.definition.string.begin.sql
+      match: '"'
+      set:
+      - meta_scope: meta.string.sql
+      - meta_content_scope: variable.other.table.sql
+      - scope: punctuation.definition.string.end.sql
+        pop: true
+        match: '"'
   literal-number:
   - match: \b\d+\b
     scope: constant.numeric.sql
     pop: true
+
   infix-operators:
   - match: '[-+*/]'
     scope: keyword.operator.numeric.sql

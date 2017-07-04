@@ -17,6 +17,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 print(build_yaml_macros(
-    input = sys.stdin.read(),
+    input = sys.stdin,
+    output = sys.stdout,
     macros_search_path=args.macros_path,
 ))
