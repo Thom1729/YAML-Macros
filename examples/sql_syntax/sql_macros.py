@@ -1,17 +1,7 @@
+from YAMLMacros.lib.syntax import meta, expect, pop_on, stack
+
 def word(str):
     return r'(?:\b(?i:%s)\b)' % str
-
-def meta(scope):
-    return [
-        { "meta_scope": scope },
-        { "match": r'', "pop": True },
-    ]
-
-def expect(expr, scope):
-    return [
-        { "match": expr, "scope": scope, "pop": True },
-        { "match": r'(?=\S)', "pop": True },
-    ]
 
 def identifier(scope):
     return [
@@ -37,17 +27,3 @@ def identifier(scope):
 
 def expect_identifier(scope):
     return identifier(scope) + [ { "match": r'(?=\S)', "pop": True } ]
-
-def pop_on(expr):
-    return {
-        "match": r'(?=(?:%s))' % expr,
-        "pop": True
-    }
-
-def stack(*contexts):
-    return [
-        {
-            "match": r'(?=\S)',
-            "set": contexts
-        }
-    ]
