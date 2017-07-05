@@ -1530,28 +1530,6 @@ contexts:
         pop: true
     - expression
 
-  jsx-tag-attributes:
-  - meta_scope: meta.tag.js
-
-  - match: '>'
-    scope: punctuation.definition.tag.end.js
-    set: jsx-body
-
-  - match: /
-    scope: punctuation.definition.tag.end.js
-    set: jsx-expect-tag-end
-
-  - include: jsx-interpolation
-
-  - match: '{{jsx_identifier}}'
-    scope: entity.other.attribute-name.js
-
-  - match: '='
-    scope: punctuation.separator.key-value.js
-
-  - match: (?=['"])
-    push: literal-string
-
   jsx-expect-tag-end:
   - match: '>'
     scope: punctuation.definition.tag.end.js
@@ -1574,6 +1552,38 @@ contexts:
       set:
       - jsx-tag-attributes
       - jsx-tag-name
+
+  jsx-tag-attributes:
+  - meta_scope: meta.tag.js
+
+  - match: '>'
+    scope: punctuation.definition.tag.end.js
+    set: jsx-body
+
+  - match: /
+    scope: punctuation.definition.tag.end.js
+    set: jsx-expect-tag-end
+
+  - include: jsx-interpolation
+
+  - match: '{{jsx_identifier}}'
+    scope: entity.other.attribute-name.js
+
+  - match: '='
+    scope: punctuation.separator.key-value.js
+
+  - match: (?=['"])
+    push: literal-string
+
+  jsx-tag-name:
+  - match: '{{jsx_identifier}}'
+    scope: entity.name.tag.js
+    set:
+    - match: '[:.]'
+      scope: punctuation.accessor.js
+      set: jsx-tag-name
+    - include: else-pop
+  - include: else-pop
 
   jsx-body:
   - match: <
@@ -1599,9 +1609,3 @@ contexts:
     - include: jsx-interpolation
     - match: (?=<)
       pop: true
-  jsx-tag-name:
-  - match: '{{jsx_identifier}}'
-    scope: entity.name.tag.js
-    pop: true
-  - include: else-pop
-

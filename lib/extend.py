@@ -1,6 +1,5 @@
+from collections import OrderedDict
 import ruamel.yaml
-from os import path
-
 yaml = ruamel.yaml.YAML()
 
 class Operation():
@@ -24,10 +23,14 @@ class Prepend(Operation):
         return self.extension + base
 
 
-def merge(**x): return Merge(x)
-def prepend(*x): return Prepend(list(x))
+def merge(*items): return Merge(OrderedDict(items))
+def prepend(*items): return Prepend(list(items))
 
 
-def extend(base, **extension):
-    syntax = yaml.load( open( path.abspath(base),'r') )
+def extend(*items):
+    extension = OrderedDict(items)
+    base = extension['_base']
+    del extension['_base']
+
+    syntax = yaml.load( open(base, 'r') )
     return Merge(extension).apply(syntax)

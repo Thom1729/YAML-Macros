@@ -2,7 +2,7 @@
 %TAG ! tag:yaml-macros:YAMLMacros.lib.extend:
 ---
 !extend
-base: JavaScript.sublime-syntax
+_base: JavaScript.sublime-syntax
 name: JSX (YAML Macros example)
 
 variables: !merge
@@ -70,7 +70,11 @@ contexts: !merge
   jsx-tag-name:
     - match: '{{jsx_identifier}}'
       scope: entity.name.tag.js
-      pop: true
+      set:
+        - match: '[:.]'
+          scope: punctuation.accessor.js
+          set: jsx-tag-name
+        - include: else-pop
     - include: else-pop
 
   jsx-body:

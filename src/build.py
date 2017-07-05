@@ -9,8 +9,6 @@ import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap
 
 def load_macros(macro_path):
-    # search_path, name = path.split(path.abspath(macro_path))
-
     sys.path.append(os.getcwd())
     module = importlib.import_module(macro_path)
 
