@@ -1,5 +1,6 @@
 %YAML 1.2
-%TAG ! tag:yaml-macros:sql_macros/
+%TAG ! tag:yaml-macros:sql_macros:
+#%TAG ! tag:yaml-macros:YAMLMacros.examples.sql_syntax.sql_macros:
 ---
 name: SQL (YAML Macros example)
 scope: source.sql

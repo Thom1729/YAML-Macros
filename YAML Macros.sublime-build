@@ -1,4 +1,5 @@
 {
     "target": "build_yaml_macros",
-    "selector": "source.yaml"
+    "selector": "source.yaml",
+    "working_dir": "$file_path"
 }

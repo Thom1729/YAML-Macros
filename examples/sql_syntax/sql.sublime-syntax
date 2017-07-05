@@ -33,43 +33,43 @@ contexts:
 
   query:
   - meta_scope: meta.query.sql
-  - match: (?=(?:;))
-    pop: true
+  - pop: true
+    match: (?=(?:;))
 
   - match: (?:\b(?i:select)\b)
     scope: keyword.other.select.sql
     push:
     - - meta_scope: meta.select.sql
-      - match: ''
-        pop: true
+      - pop: true
+        match: ''
     - select-list
-    - - match: (?:\b(?i:distinct)\b)
+    - - pop: true
+        match: (?:\b(?i:distinct)\b)
         scope: keyword.other.sql
-        pop: true
-      - match: (?=\S)
-        pop: true
+      - pop: true
+        match: (?=\S)
 
   - match: (?:\b(?i:from)\b)
     scope: keyword.other.from.sql
     push:
     - - meta_scope: meta.from.sql
-      - match: ''
-        pop: true
+      - pop: true
+        match: ''
     -                        
 
-      - match: '{{var_name}}'
+      - pop: true
+        match: '{{var_name}}'
         scope: variable.other.table.sql
-        pop: true
       - match: '"'
-        scope: punctuation.definition.string.begin.sql
         set:
         - meta_scope: meta.string.sql
         - meta_content_scope: variable.other.table.sql
-        - match: '"'
+        - pop: true
+          match: '"'
           scope: punctuation.definition.string.end.sql
-          pop: true
-      - match: (?=\S)
-        pop: true
+        scope: punctuation.definition.string.begin.sql
+      - pop: true
+        match: (?=\S)
   select-list:
   - match: (?=\S)
     set:
@@ -86,26 +86,26 @@ contexts:
   - match: (?=\S)
     set:
     - - meta_scope: meta.select-item.sql
-      - match: ''
-        pop: true
-    - - match: '{{var_name}}'
+      - pop: true
+        match: ''
+    - - pop: true
+        match: '{{var_name}}'
         scope: entity.name.alias.sql
-        pop: true
       - match: '"'
-        scope: punctuation.definition.string.begin.sql
         set:
         - meta_scope: meta.string.sql
         - meta_content_scope: entity.name.alias.sql
-        - match: '"'
+        - pop: true
+          match: '"'
           scope: punctuation.definition.string.end.sql
-          pop: true
-      - match: (?=\S)
-        pop: true
-    - - match: (?:\b(?i:as)\b)
+        scope: punctuation.definition.string.begin.sql
+      - pop: true
+        match: (?=\S)
+    - - pop: true
+        match: (?:\b(?i:as)\b)
         scope: keyword.other.sql
-        pop: true
-      - match: (?=\S)
-        pop: true
+      - pop: true
+        match: (?=\S)
     - expression
   expression:
   - match: (?=\S)
@@ -129,17 +129,17 @@ contexts:
 
   variable:             
 
-    - match: '{{var_name}}'
+    - pop: true
+      match: '{{var_name}}'
       scope: variable.other.table.sql
-      pop: true
     - match: '"'
-      scope: punctuation.definition.string.begin.sql
       set:
       - meta_scope: meta.string.sql
       - meta_content_scope: variable.other.table.sql
-      - match: '"'
+      - pop: true
+        match: '"'
         scope: punctuation.definition.string.end.sql
-        pop: true
+      scope: punctuation.definition.string.begin.sql
   literal-number:
   - match: \b\d+\b
     scope: constant.numeric.sql

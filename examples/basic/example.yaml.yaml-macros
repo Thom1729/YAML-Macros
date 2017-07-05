@@ -1,4 +1,4 @@
 %YAML 1.2
-%TAG ! tag:yaml-macros:example_macros/
+%TAG ! tag:yaml-macros:YAMLMacros.examples.basic.example_macros:
 ---
 text: !fancy title
