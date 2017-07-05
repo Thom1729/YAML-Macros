@@ -1,23 +1,15 @@
-#!/usr/bin/python
+#!/bin/env python3
 
-import os
 import sys
-from argparse import ArgumentParser
+from os import path
 
-from .src.build import build_yaml_macros
-
-parser = ArgumentParser()
-
-parser.add_argument(
-    "-m", "--macros-path",
-    default=os.getcwd(),
-    help="path to search for macro definitions",
+sys.path.append(
+    path.join(path.dirname(path.realpath(__file__)), '../..')
 )
 
-args = parser.parse_args()
+from YAMLMacros.src.build import build_yaml_macros
 
 print(build_yaml_macros(
-    input = sys.stdin,
+    input = sys.stdin.read(),
     output = sys.stdout,
-    macros_search_path=args.macros_path,
 ))
