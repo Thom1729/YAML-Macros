@@ -31,7 +31,7 @@ The same construct `\b(?i:…)\b` is repeated over and over. This can be tedious
 
 ```yaml
 %YAML 1.2
-%TAG ! tag:yaml-macros:sql_simple_macros/
+%TAG ! tag:yaml-macros:sql_simple_macros
 ---
 name: SQL Simple (YAML Macros example)
 scope: source.sql
