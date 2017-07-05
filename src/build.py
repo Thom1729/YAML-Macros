@@ -3,6 +3,7 @@ import sys
 from os import path
 import importlib
 from inspect import signature, Parameter
+import re
 
 import ruamel.yaml
 
@@ -17,6 +18,12 @@ def load_macros(macro_path):
         for name, func in module.__dict__.items()
         if callable(func) and not name.startswith('_')
     ]
+
+def fix_comments(yaml):
+    return ''.join(
+        re.sub(r'^\s+#.*$', '', line)
+        for line in yaml.splitlines(True)
+    )
 
 def apply_transformation(loader, node, transform):
     try:
@@ -59,4 +66,4 @@ def build_yaml_macros(input, output, context={}):
 
     syntax = yaml.load(input)
 
-    yaml.dump(syntax, stream=output)
+    yaml.dump(syntax, stream=output, transform=fix_comments)
