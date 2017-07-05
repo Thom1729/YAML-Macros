@@ -4,7 +4,7 @@ A macro system for YAML files powered by Python. Designed for Sublime Text synta
 
 ## Installation
 
-YAML Macros can be installed via [Package Control](https://packagecontrol.io/installation). You can also `git clone` this repository into your packages directory.
+YAML Macros can be installed via [Package Control](https://packagecontrol.io/installation). You can also `git clone` this repository into your packages directory. If you do, rename it to "YAMLMacros".
 
 ## Overview
 
@@ -31,7 +31,7 @@ The same construct `\b(?i:â€¦)\b` is repeated over and over. This can be tedious
 
 ```yaml
 %YAML 1.2
-%TAG ! tag:yaml-macros:sql_simple_macros
+%TAG ! tag:yaml-macros:sql_simple_macros:
 ---
 name: SQL Simple (YAML Macros example)
 scope: source.sql
@@ -63,10 +63,10 @@ It's as simple as that! For a more complex use case that uses a number of macros
 To import macros into your YAML file, add a `%TAG` directive at the top referencing the file containing your macros. The syntax is as follows:
 
 ```yaml
-%TAG <tag handle> tag:taml-macros:<macro definitions file>
+%TAG <tag handle> tag:yaml-macros:<macro package>:
 ```
 
-`<tag handle>` is the prefix you will use to invoke your macros. It must begin with an exclamation point. `<macro definitions file>` is the local path from this file to your macro file. You can use multiple macro definitions files; simply write two `%TAG` directives with different tag handles.
+`<tag handle>` is the prefix you will use to invoke your macros. It must begin with an exclamation point. `<macro package>` is path to your macro definitions file. You can use multiple macro definitions files; simply write two `%TAG` directives with different tag handles.
 
 ### Invoking macros
 
@@ -97,13 +97,4 @@ If you have named your file with a `.yaml-macros` extension, simply select the â
 
 ### Command line interface
 
-There is a basic command line interface. The CLI expects your YAML Macros file as standard input and will send the compiled YAML file to standard output. Optionally, you can specify a custom path as a base to search for your macro definitions file.
-
-```
-usage: cli.py [-h] [-m MACROS_PATH]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -m MACROS_PATH, --macros-path MACROS_PATH
-                        path to search for macro definitions
-```
+There is a basic command line interface. The CLI expects your YAML Macros file as standard input and will send the compiled YAML file to standard output. Paths will be resolved relative to your working directory.
