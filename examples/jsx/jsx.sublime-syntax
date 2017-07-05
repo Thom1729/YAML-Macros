@@ -530,7 +530,7 @@ contexts:
   - include: else-pop
 
   fallthrough:
-    # If an arrow function has the ( and ) on different lines, we won't have matched
+
     - match: =>
       scope: storage.type.function.arrow.js
 
@@ -924,8 +924,8 @@ contexts:
       1: keyword.operator.assignment.js
   - match: (?={{identifier}})
     push:
-        # These matches have to be duplicated to get entity.name.function
-        # on the end of the scope stack since most color schemes require it
+
+
       - match: '{{dollar_only_identifier}}'
         scope: variable.other.dollar.only.js punctuation.dollar.js entity.name.function.js
       - match: '{{dollar_identifier}}'
@@ -998,10 +998,10 @@ contexts:
     pop: true
   - match: \n
     set: arrow-function-concise-continuation
-    # This custom comment match is required so that we move to the
-    # arrow-function-concise-continuation context to try and continue the
-    # body. Previously we didn't match the \n in the comments context, but that
-    # caused completions to appear at the end of a single-line comment.
+
+
+
+
   - match: //
     scope: punctuation.definition.comment.js
     set:
@@ -1012,8 +1012,8 @@ contexts:
     push: expression-no-comma
 
   arrow-function-concise-continuation:
-    # Allow newlines in a concise body if the next line is a continuation
-    # of the previous via method chaining
+
+
     - match: (?=^\s*(\.|/[/*]))
       set: arrow-function-concise-body
     - match: (?=.|\n)
@@ -1039,7 +1039,7 @@ contexts:
     - match: \)
       scope: punctuation.section.group.end.js
       pop: true
-        # Destructuring
+
     - match: \{
       scope: punctuation.section.block.begin.js
       push:
@@ -1368,8 +1368,8 @@ contexts:
     - meta_scope: meta.group.js
     - match: (?=\))
       pop: true
-        # Consume comma plus any whitespace to prevent whitespace from
-        # getting meta scopes when they don't really apply
+
+
     - match: (,)\s+
       captures:
         1: punctuation.separator.comma.js
@@ -1498,11 +1498,11 @@ contexts:
   - match: \.
     scope: punctuation.accessor.js
     push:
-      # All of these matches use set (or effectively a set via the final
-      # include/match/pop construct) instead of push so that we escape this
-      # accessor state once a match has been made. Otherwise identifiers
-      # following method definitions or method calls will be scoped as
-      # properties.
+
+
+
+
+
       - match: (?=({{identifier}})\s*(=)\s*({{func_lookahead}}|{{arrow_func_lookahead}}))
         set:
         - meta_scope: meta.function.declaration.js
