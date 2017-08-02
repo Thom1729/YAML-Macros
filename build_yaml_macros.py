@@ -18,12 +18,12 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
 
         if extension != '.yaml-macros': raise "Not a .yaml-macros file!"
 
-        output_file = open(output_path, 'w')
+        with open(output_path, 'w') as output_file:
 
-        build_yaml_macros(
-            view.substr( sublime.Region(0, view.size()) ),
-            output_file,
-            {
-                "file_path": source_path
-            },
-        )
+            build_yaml_macros(
+                view.substr( sublime.Region(0, view.size()) ),
+                output_file,
+                {
+                    "file_path": source_path
+                },
+            )
