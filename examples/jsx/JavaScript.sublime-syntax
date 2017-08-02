@@ -2,6 +2,7 @@
 ---
 # Derived from JavaScript Next: https://github.com/Benvie/JavaScriptNext.tmLanguage
 name: JavaScript
+hidden: true
 file_extensions:
   - js
   - htc

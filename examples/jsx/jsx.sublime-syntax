@@ -1,6 +1,7 @@
 %YAML 1.2
 ---
 name: JSX (YAML Macros example)
+hidden: true
 file_extensions:
 - js
 - htc
