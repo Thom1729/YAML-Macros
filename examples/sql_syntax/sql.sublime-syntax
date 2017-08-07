@@ -1,7 +1,7 @@
 %YAML 1.2
 ---
 name: SQL (YAML Macros example)
-scope: source.sql
+scope: source.sql.example
 hidden: true
 
 variables:
@@ -33,43 +33,43 @@ contexts:
 
   query:
   - meta_scope: meta.query.sql
-  - pop: true
-    match: (?=(?:;))
+  - match: (?=(?:;))
+    pop: true
 
   - match: (?:\b(?i:select)\b)
     scope: keyword.other.select.sql
     push:
     - - meta_scope: meta.select.sql
-      - pop: true
-        match: ''
+      - match: ''
+        pop: true
     - select-list
-    - - pop: true
-        match: (?:\b(?i:distinct)\b)
+    - - match: (?:\b(?i:distinct)\b)
+        pop: true
         scope: keyword.other.sql
-      - pop: true
-        match: (?=\S)
+      - match: (?=\S)
+        pop: true
 
   - match: (?:\b(?i:from)\b)
     scope: keyword.other.from.sql
     push:
     - - meta_scope: meta.from.sql
-      - pop: true
-        match: ''
+      - match: ''
+        pop: true
     -                        
 
-      - pop: true
-        match: '{{var_name}}'
+      - match: '{{var_name}}'
+        pop: true
         scope: variable.other.table.sql
       - match: '"'
+        scope: punctuation.definition.string.begin.sql
         set:
         - meta_scope: meta.string.sql
         - meta_content_scope: variable.other.table.sql
-        - pop: true
-          match: '"'
+        - match: '"'
+          pop: true
           scope: punctuation.definition.string.end.sql
-        scope: punctuation.definition.string.begin.sql
-      - pop: true
-        match: (?=\S)
+      - match: (?=\S)
+        pop: true
   select-list:
   - match: (?=\S)
     set:
@@ -86,26 +86,26 @@ contexts:
   - match: (?=\S)
     set:
     - - meta_scope: meta.select-item.sql
-      - pop: true
-        match: ''
-    - - pop: true
-        match: '{{var_name}}'
+      - match: ''
+        pop: true
+    - - match: '{{var_name}}'
+        pop: true
         scope: entity.name.alias.sql
       - match: '"'
+        scope: punctuation.definition.string.begin.sql
         set:
         - meta_scope: meta.string.sql
         - meta_content_scope: entity.name.alias.sql
-        - pop: true
-          match: '"'
+        - match: '"'
+          pop: true
           scope: punctuation.definition.string.end.sql
-        scope: punctuation.definition.string.begin.sql
-      - pop: true
-        match: (?=\S)
-    - - pop: true
-        match: (?:\b(?i:as)\b)
+      - match: (?=\S)
+        pop: true
+    - - match: (?:\b(?i:as)\b)
+        pop: true
         scope: keyword.other.sql
-      - pop: true
-        match: (?=\S)
+      - match: (?=\S)
+        pop: true
     - expression
   expression:
   - match: (?=\S)
@@ -129,17 +129,17 @@ contexts:
 
   variable:             
 
-    - pop: true
-      match: '{{var_name}}'
+    - match: '{{var_name}}'
+      pop: true
       scope: variable.other.table.sql
     - match: '"'
+      scope: punctuation.definition.string.begin.sql
       set:
       - meta_scope: meta.string.sql
       - meta_content_scope: variable.other.table.sql
-      - pop: true
-        match: '"'
+      - match: '"'
+        pop: true
         scope: punctuation.definition.string.end.sql
-      scope: punctuation.definition.string.begin.sql
   literal-number:
   - match: \b\d+\b
     scope: constant.numeric.sql
