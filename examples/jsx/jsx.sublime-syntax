@@ -6,7 +6,7 @@ file_extensions:
 - js
 - htc
 first_line_match: ^#!\s*/.*\b(node|js)\b
-scope: source.js
+scope: source.js.example
 variables:
   identifier: '[_$[:alpha:]][_$[:alnum:]]*'
   constant_identifier: '[[:upper:]][_$[:digit:][:upper:]]*\b'

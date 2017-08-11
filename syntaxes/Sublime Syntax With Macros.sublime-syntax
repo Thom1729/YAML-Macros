@@ -1,0 +1,11 @@
+%YAML 1.2
+---
+name: Sublime Text Syntax Definition (YAML)
+scope: source.yaml.sublime.syntax.yaml-macros
+hidden: true
+file_extensions:
+  - sublime-syntax.yaml-macros
+
+contexts:
+  main:
+    - include: scope:source.yaml.sublime.syntax
