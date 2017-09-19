@@ -4,8 +4,8 @@
 name: JavaScript
 hidden: true
 file_extensions:
-  - js
-  - htc
+  - js.example
+  - htc.example
 first_line_match: ^#!\s*/.*\b(node|js)\b
 scope: source.js.example
 variables:

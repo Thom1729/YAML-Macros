@@ -3,8 +3,8 @@
 name: JSX (YAML Macros example)
 hidden: true
 file_extensions:
-- js
-- htc
+- js.example
+- htc.example
 first_line_match: ^#!\s*/.*\b(node|js)\b
 scope: source.js.example
 variables:
@@ -342,7 +342,7 @@ contexts:
       - meta_scope: meta.block.js
 
       - match: (?=\})
-        pop: true  
+        pop: true
 
       - match: \b(case)\b
         scope: keyword.control.switch.js
