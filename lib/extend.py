@@ -32,5 +32,6 @@ def extend(*items):
     base = extension['_base']
     del extension['_base']
 
-    syntax = yaml.load( open(base, 'r') )
+    with open(base, 'r') as base_file:
+        syntax = yaml.load(base_file)
     return Merge(extension).apply(syntax)
