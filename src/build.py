@@ -8,7 +8,6 @@ import ruamel.yaml
 def load_macros(macro_path):
     sys.path.append(os.getcwd())
     try:
-        print(sys.path)
         module = runpy.run_module(macro_path)
 
         return {
