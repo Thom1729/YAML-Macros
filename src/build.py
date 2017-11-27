@@ -5,10 +5,13 @@ import runpy
 
 import ruamel.yaml
 
-def load_macros(macro_path):
+def load_macros(macro_path, context):
     sys.path.append(os.getcwd())
     try:
-        module = runpy.run_module(macro_path)
+        module = runpy.run_module(
+            macro_path,
+            init_globals={ "_context": context }
+        )
 
         return {
             name.rstrip('_'): func
@@ -39,7 +42,7 @@ def apply_transformation(loader, node, transform):
     except TypeError as e:
         raise TypeError('Failed to transform node: {}\n{}'.format(str(e), node))
 
-def build_yaml_macros(input, output=None, context={}):
+def _build_yaml_macros(input, context={}):
     MacroConstructor = type(
         "MacroConstructor",
         (ruamel.yaml.constructor.RoundTripConstructor, object),
@@ -58,13 +61,16 @@ def build_yaml_macros(input, output=None, context={}):
             if not prefix.startswith('tag:yaml-macros:'): break
 
             macro_path = prefix.split(':')[2]
-            macros = load_macros(macro_path)
+            macros = load_macros(macro_path, context)
 
             yaml.Constructor.add_multi_constructor(handle,
                 lambda loader, suffix, node: apply_transformation(loader, node, macros[suffix])
             )
 
-    syntax = yaml.load(input)
+    return yaml.load(input)
+
+def build_yaml_macros(input, output=None, context={}):
+    syntax = _build_yaml_macros(input, context)
 
     if output:
         yaml.dump(syntax, stream=output)

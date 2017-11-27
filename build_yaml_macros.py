@@ -11,7 +11,7 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
         if working_dir:
             os.chdir(working_dir)
 
-        view = self.window.active_view();
+        view = self.window.active_view()
         source_path = view.file_name()
 
         output_path, extension = path.splitext(source_path)
