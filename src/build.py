@@ -1,29 +1,23 @@
 import os
 import sys
-from os import path
-import importlib
 from inspect import signature, Parameter
-import re
+import runpy
 
 import ruamel.yaml
 
-from ruamel.yaml.comments import CommentedMap
-
 def load_macros(macro_path):
     sys.path.append(os.getcwd())
-    module = importlib.import_module(macro_path)
+    try:
+        print(sys.path)
+        module = runpy.run_module(macro_path)
 
-    return [
-        (name.rstrip('_'), func)
-        for name, func in module.__dict__.items()
-        if callable(func) and not name.startswith('_')
-    ]
-
-def fix_comments(yaml):
-    return ''.join(
-        re.sub(r'^\s+#.*$', '', line)
-        for line in yaml.splitlines(True)
-    )
+        return {
+            name.rstrip('_'): func
+            for name, func in module.items()
+            if callable(func) and not name.startswith('_')
+        }
+    finally:
+        sys.path.pop()
 
 def apply_transformation(loader, node, transform):
     try:
@@ -32,7 +26,7 @@ def apply_transformation(loader, node, transform):
         elif isinstance(node, ruamel.yaml.SequenceNode):
             return transform(*loader.construct_sequence(node))
         elif isinstance(node, ruamel.yaml.MappingNode):
-            ret = CommentedMap()
+            ret = ruamel.yaml.comments.CommentedMap()
             loader.construct_mapping(node, ret)
 
             if any(
@@ -46,12 +40,16 @@ def apply_transformation(loader, node, transform):
     except TypeError as e:
         raise TypeError('Failed to transform node: {}\n{}'.format(str(e), node))
 
-def get_constructor(transform):
-    return lambda loader, node: apply_transformation(loader, node, transform)
+def build_yaml_macros(input, output=None, context={}):
+    MacroConstructor = type(
+        "MacroConstructor",
+        (ruamel.yaml.constructor.RoundTripConstructor, object),
+        {},
+    )
 
-def build_yaml_macros(input, output, context={}):
     yaml = ruamel.yaml.YAML()
     yaml.version = (1,2)
+    yaml.Constructor = MacroConstructor
 
     for token in ruamel.yaml.scan(input):
         if isinstance(token, ruamel.yaml.tokens.DocumentStartToken):
@@ -61,9 +59,18 @@ def build_yaml_macros(input, output, context={}):
             if not prefix.startswith('tag:yaml-macros:'): break
 
             macro_path = prefix.split(':')[2]
-            for name, transform in load_macros(macro_path):
-                yaml.constructor.add_constructor(handle+name, get_constructor(transform))
+            macros = load_macros(macro_path)
+
+            yaml.Constructor.add_multi_constructor(handle,
+                lambda loader, suffix, node: apply_transformation(loader, node, macros[suffix])
+            )
 
     syntax = yaml.load(input)
 
-    yaml.dump(syntax, stream=output, transform=fix_comments)
+    if output:
+        yaml.dump(syntax, stream=output)
+    else:
+        def ret(stream):
+            yaml.dump(syntax, stream=stream)
+
+        return ret
