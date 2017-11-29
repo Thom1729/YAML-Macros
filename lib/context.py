@@ -20,5 +20,4 @@ class Context():
         return self.context
 
     def __exit__(self, *args):
-        print(self.stack)
         self.stack.pop()
