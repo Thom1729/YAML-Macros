@@ -7,8 +7,8 @@ def _get_context_stack():
         _ns.context = [ {} ]
     return _ns.context
 
-def setting(name):
-    return _get_context_stack()[-1].get(name, None)
+def get_context():
+    return _get_context_stack()[-1]
 
 class Context():
     def __init__(self, context):

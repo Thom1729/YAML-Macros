@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from functools import reduce
 
+from YAMLMacros.src.build import process_macros
+
 import ruamel.yaml
 
 yaml = ruamel.yaml.YAML()
@@ -38,6 +40,9 @@ def prepend(*items): return Prepend(list(items))
 def all(*items): return All(list(items))
 
 
+def include(name):
+    with open(name, 'r') as file:
+        return process_macros(file.read())
 
 def apply(base, *extensions):
     return all(*extensions).apply(base)

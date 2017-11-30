@@ -4,7 +4,7 @@ from inspect import signature, Parameter
 import runpy
 
 import ruamel.yaml
-from YAMLMacros.lib.context import Context
+from YAMLMacros.src.context import Context
 
 def load_macros(macro_path):
     sys.path.append(os.getcwd())
@@ -40,7 +40,7 @@ def apply_transformation(loader, node, transform):
     except TypeError as e:
         raise TypeError('Failed to transform node: {}\n{}'.format(str(e), node))
 
-def _build_yaml_macros(input, context=None):
+def process_macros(input, context=None):
     MacroConstructor = type(
         "MacroConstructor",
         (ruamel.yaml.constructor.RoundTripConstructor, object),
@@ -72,7 +72,7 @@ def _build_yaml_macros(input, context=None):
         return yaml.load(input)
 
 def build_yaml_macros(input, output=None, context=None):
-    syntax = _build_yaml_macros(input, context)
+    syntax = process_macros(input, context)
 
     yaml = ruamel.yaml.YAML()
     yaml.version = (1,2)
