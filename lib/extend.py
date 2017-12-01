@@ -1,5 +1,10 @@
 from collections import OrderedDict
+from functools import reduce
+
+from YAMLMacros.src.build import process_macros
+
 import ruamel.yaml
+
 yaml = ruamel.yaml.YAML()
 
 class Operation():
@@ -22,10 +27,25 @@ class Prepend(Operation):
     def apply(self, base):
         return self.extension + base
 
+class All(Operation):
+    def apply(self, base):
+        return reduce(
+            lambda ret, ext: ext.apply(ret),
+            [x for x in self.extension if x != None],
+            base
+        )
 
 def merge(*items): return Merge(OrderedDict(items))
 def prepend(*items): return Prepend(list(items))
+def all(*items): return All(list(items))
 
+
+def include(name):
+    with open(name, 'r') as file:
+        return process_macros(file.read())
+
+def apply(base, *extensions):
+    return all(*extensions).apply(base)
 
 def extend(*items):
     extension = OrderedDict(items)
