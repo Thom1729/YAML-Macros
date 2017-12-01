@@ -71,16 +71,15 @@ def process_macros(input, context=None):
     else:
         return yaml.load(input)
 
-def build_yaml_macros(input, output=None, context=None):
-    syntax = process_macros(input, context)
-
+def get_serializer():
     yaml = ruamel.yaml.YAML()
     yaml.version = (1,2)
+    yaml.indent(mapping=2, sequence=4, offset=2)
 
-    if output:
-        yaml.dump(syntax, stream=output)
-    else:
-        def ret(stream):
-            yaml.dump(syntax, stream=stream)
+    return yaml
 
-        return ret
+def build_yaml_macros(input, output=None, context=None):
+    syntax = process_macros(input, context)
+    yaml = get_serializer()
+
+    yaml.dump(syntax, stream=output)

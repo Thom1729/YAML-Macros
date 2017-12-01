@@ -4,7 +4,7 @@ import sublime_plugin
 import os
 from os import path
 
-from .src.build import build_yaml_macros
+from YAMLMacros.src.build import process_macros, get_serializer
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
     def run(self, working_dir=None):
@@ -18,15 +18,14 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
 
         if extension != '.yaml-macros': raise "Not a .yaml-macros file!"
 
-        try:
-            result = build_yaml_macros(
-                view.substr( sublime.Region(0, view.size()) ),
-                context={
-                    "file_path": source_path
-                },
-            )
+        result = process_macros(
+            view.substr( sublime.Region(0, view.size()) ),
+            context={
+                "file_path": source_path
+            },
+        )
 
-            with open(output_path, 'w') as output_file:
-                result(output_file)
-        except Exception as e:
-            raise e
+        serializer = get_serializer()
+
+        with open(output_path, 'w') as output_file:
+            serializer.dump(result, stream=output_file)
