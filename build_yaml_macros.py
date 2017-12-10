@@ -4,7 +4,8 @@ import sublime_plugin
 import os
 from os import path
 
-from YAMLMacros.src.build import process_macros, get_serializer
+from YAMLMacros.src.build import process_macros
+from YAMLMacros.src.yaml_provider import get_yaml_instance
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
     def run(self, working_dir=None):
@@ -25,7 +26,7 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
             },
         )
 
-        serializer = get_serializer()
+        serializer = get_yaml_instance()
 
         with open(output_path, 'w') as output_file:
             serializer.dump(result, stream=output_file)

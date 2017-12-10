@@ -5,6 +5,7 @@ import runpy
 
 import ruamel.yaml
 from YAMLMacros.src.context import Context
+from YAMLMacros.src.yaml_provider import get_yaml_instance
 
 def load_macros(macro_path):
     sys.path.append(os.getcwd())
@@ -41,15 +42,7 @@ def apply_transformation(loader, node, transform):
         raise TypeError('Failed to transform node: {}\n{}'.format(str(e), node))
 
 def process_macros(input, context=None):
-    MacroConstructor = type(
-        "MacroConstructor",
-        (ruamel.yaml.constructor.RoundTripConstructor, object),
-        {},
-    )
-
-    yaml = ruamel.yaml.YAML()
-    yaml.version = (1,2)
-    yaml.Constructor = MacroConstructor
+    yaml = get_yaml_instance()
 
     for token in ruamel.yaml.scan(input):
         if isinstance(token, ruamel.yaml.tokens.DocumentStartToken):
@@ -71,15 +64,8 @@ def process_macros(input, context=None):
     else:
         return yaml.load(input)
 
-def get_serializer():
-    yaml = ruamel.yaml.YAML()
-    yaml.version = (1,2)
-    yaml.indent(mapping=2, sequence=4, offset=2)
-
-    return yaml
-
 def build_yaml_macros(input, output=None, context=None):
     syntax = process_macros(input, context)
-    yaml = get_serializer()
+    yaml = get_yaml_instance()
 
     yaml.dump(syntax, stream=output)
