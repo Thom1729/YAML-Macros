@@ -6,7 +6,7 @@ scope: source.sql.example
 hidden: true
 
 variables:
-  identifier: '\b[A-Za-z_]\w*\b'
+  identifier: (?:\b[A-Za-z_]\w*\b)
   reserved_words: !word select|distinct|from|as
 
   var_name: (?:(?!{{reserved_words}}){{identifier}})

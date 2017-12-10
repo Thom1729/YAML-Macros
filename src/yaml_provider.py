@@ -1,4 +1,5 @@
 import ruamel.yaml
+from collections import OrderedDict
 
 def clone_class(klass):
     return type(
@@ -19,5 +20,7 @@ def get_yaml_instance(
 
     yaml.version = version
     yaml.indent(**indent);
+
+    yaml.Representer.add_representer(OrderedDict, lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data))
 
     return yaml

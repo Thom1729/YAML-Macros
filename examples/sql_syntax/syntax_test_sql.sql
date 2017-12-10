@@ -1,4 +1,4 @@
--- SYNTAX TEST "Packages/YAML Macros/examples/sql_syntax/sql.sublime-syntax"
+-- SYNTAX TEST "Packages/YAMLMacros/examples/sql_syntax/sql.sublime-syntax"
 
 select
 -- <- meta.query.sql meta.select.sql keyword.other.select.sql
