@@ -21,9 +21,7 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
 
         result = process_macros(
             view.substr( sublime.Region(0, view.size()) ),
-            context={
-                "file_path": source_path
-            },
+            arguments={ "file_path": source_path },
         )
 
         serializer = get_yaml_instance()
