@@ -17,28 +17,36 @@ PHANTOM_TEMPLATE="""
 """
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
-    def run(self, working_dir=None):
+    def run(self, source_path=None, destination_path=None, working_dir=None, arguments={}):
         if working_dir:
             os.chdir(working_dir)
 
-        view = self.window.active_view()
-        source_path = view.file_name()
+        if source_path:
+            print(source_path)
+            view = self.window.find_open_file(source_path)
+        else:
+            view = self.window.active_view()
+            source_path = view.file_name()
 
-        output_path, extension = path.splitext(source_path)
+        if not destination_path:
+            destination_path, extension = path.splitext(source_path)
+            if extension != '.yaml-macros': raise "Not a .yaml-macros file!"
 
-        if extension != '.yaml-macros': raise "Not a .yaml-macros file!"
+        arguments['file_path'] = source_path
 
         panel = OutputPanel(self.window, 'YAMLMacros')
         panel.show()
         panel.print('Building %s...' % source_path)
 
-        phantoms = PhantomManager(view, 'YAMLMacros', template=PHANTOM_TEMPLATE)
-        phantoms.clear()
+        if view:
+            phantoms = PhantomManager(view, 'YAMLMacros', template=PHANTOM_TEMPLATE)
+            phantoms.clear()
 
         try:
             result = process_macros(
                 view.substr( sublime.Region(0, view.size()) ),
-                arguments={ "file_path": source_path },
+                # arguments={ "file_path": source_path },
+                arguments=arguments,
             )
         except MacroError as e:
             region = sublime.Region(
@@ -57,7 +65,8 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
             else:
                 panel.print(str(e.node.start_mark))
 
-            phantoms.add(region, e.message)
+            if view:
+                phantoms.add(region, e.message)
 
             panel.print('[Failure]')
             return
@@ -68,7 +77,7 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
 
         serializer = get_yaml_instance()
 
-        with open(output_path, 'w') as output_file:
+        with open(destination_path, 'w') as output_file:
             serializer.dump(result, stream=output_file)
-            panel.print('Compiled to %s.' % output_path)
+            panel.print('Compiled to %s.' % destination_path)
             panel.print('[Success]')

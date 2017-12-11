@@ -2,10 +2,7 @@ from collections import OrderedDict
 from functools import reduce
 
 from YAMLMacros.api import process_macros
-
-import ruamel.yaml
-
-yaml = ruamel.yaml.YAML()
+from YAMLMacros.api import get_yaml_instance
 
 class Operation():
     def __init__(self, extension):
@@ -54,6 +51,8 @@ def extend(*items):
     extension = OrderedDict(items)
     base = extension['_base']
     del extension['_base']
+
+    yaml = get_yaml_instance()
 
     with open(base, 'r') as base_file:
         syntax = yaml.load(base_file)
