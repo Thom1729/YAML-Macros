@@ -4,7 +4,8 @@ from inspect import signature, Parameter
 import runpy
 
 import ruamel.yaml
-from YAMLMacros.api import get_yaml_instance, Context
+from YAMLMacros.api import get_yaml_instance
+from YAMLMacros.api import Context
 
 def load_macros(macro_path):
     sys.path.append(os.getcwd())

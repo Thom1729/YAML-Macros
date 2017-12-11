@@ -7,9 +7,10 @@ sys.path.append(
     path.join(path.dirname(path.realpath(__file__)), '../..')
 )
 
-from YAMLMacros.src.build import build_yaml_macros
+from YAMLMacros.api import process_macros
+from YAMLMacros.api import get_yaml_instance
 
-print(build_yaml_macros(
-    input = sys.stdin.read(),
-    output = sys.stdout,
-))
+result = process_macros(sys.stdin.read())
+
+serializer = get_yaml_instance()
+serializer.dump(result, stream=sys.stdout)
