@@ -41,7 +41,7 @@ def apply_transformation(loader, node, transform):
     except TypeError as e:
         raise TypeError('Failed to transform node: {}\n{}'.format(str(e), node))
 
-def process_macros(input, context=None):
+def process_macros(input, arguments=None):
     yaml = get_yaml_instance()
 
     for token in ruamel.yaml.scan(input):
@@ -58,8 +58,8 @@ def process_macros(input, context=None):
                 lambda loader, suffix, node: apply_transformation(loader, node, macros[suffix])
             )
 
-    if context:
-        with Context(context):
+    if arguments:
+        with Context(arguments):
             return yaml.load(input)
     else:
         return yaml.load(input)
