@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from functools import reduce
 
-from YAMLMacros.src.build import process_macros
+from YAMLMacros.api import process_macros
 
 import ruamel.yaml
 

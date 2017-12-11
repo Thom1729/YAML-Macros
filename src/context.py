@@ -7,17 +7,17 @@ def _get_context_stack():
         _ns.context = [ {} ]
     return _ns.context
 
-def get_context():
-    return _get_context_stack()[-1]
-
 class Context():
+    @staticmethod
+    def get(key, default=None):
+        return _get_context_stack()[-1].get(key, default)
+
     def __init__(self, context):
         self.context = context
-        self.stack = _get_context_stack()
 
     def __enter__(self):
-        self.stack.append(self.context)
+        _get_context_stack().append(self.context)
         return self.context
 
     def __exit__(self, *args):
-        self.stack.pop()
+        _get_context_stack().pop()

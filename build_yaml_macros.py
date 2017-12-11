@@ -4,8 +4,8 @@ import sublime_plugin
 import os
 from os import path
 
-from YAMLMacros.src.build import process_macros
-from YAMLMacros.src.yaml_provider import get_yaml_instance
+from YAMLMacros.api import process_macros
+from YAMLMacros.api import get_yaml_instance
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
     def run(self, working_dir=None):
