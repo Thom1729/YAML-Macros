@@ -2,10 +2,15 @@ import os
 import sys
 from inspect import signature, Parameter
 import runpy
-
 import ruamel.yaml
+
 from YAMLMacros.api import get_yaml_instance
 from YAMLMacros.api import Context
+
+class MacroError(Exception):
+    def __init__(self, message, node):
+        self.message = message
+        self.node = node
 
 def load_macros(macro_path):
     sys.path.append(os.getcwd())
@@ -41,6 +46,20 @@ def apply_transformation(loader, node, transform):
     except TypeError as e:
         raise TypeError('Failed to transform node: {}\n{}'.format(str(e), node))
 
+def macro_multi_constructor(macros):
+    def multi_constructor(loader, suffix, node):
+        try:
+            macro = macros[suffix]
+        except KeyError:
+            raise MacroError('Unknown macro "%s".' % suffix, node)
+
+        try:
+            return apply_transformation(loader, node, macros[suffix])
+        except Exception as e:
+            raise MacroError('Error in macro execution.', node) from e
+
+    return multi_constructor
+
 def process_macros(input, arguments=None):
     yaml = get_yaml_instance()
 
@@ -52,10 +71,14 @@ def process_macros(input, arguments=None):
             if not prefix.startswith('tag:yaml-macros:'): break
 
             macro_path = prefix.split(':')[2]
-            macros = load_macros(macro_path)
+
+            try:
+                macros = load_macros(macro_path)
+            except ImportError as e:
+                raise MacroError('Failed to load library.', token) from e
 
             yaml.Constructor.add_multi_constructor(handle,
-                lambda loader, suffix, node: apply_transformation(loader, node, macros[suffix])
+                macro_multi_constructor(macros)
             )
 
     if arguments:
