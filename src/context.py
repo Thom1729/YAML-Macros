@@ -16,8 +16,10 @@ class Context():
         self.context = context
 
     def __enter__(self):
-        _get_context_stack().append(self.context)
-        return self.context
+        stack = _get_context_stack()
+        new = stack[-1].copy()
+        new.update(self.context)
+        stack.append(new)
 
     def __exit__(self, *args):
         _get_context_stack().pop()

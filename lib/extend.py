@@ -40,9 +40,12 @@ def prepend(*items): return Prepend(list(items))
 def all(*items): return All(list(items))
 
 
-def include(name):
-    with open(name, 'r') as file:
-        return process_macros(file.read())
+def include(path):
+    with open(path, 'r') as file:
+        return process_macros(
+            file.read(),
+            arguments={ "file_path": path },
+        )
 
 def apply(base, *extensions):
     return all(*extensions).apply(base)
