@@ -1,25 +1,25 @@
 import threading
+from contextlib import contextmanager
 
 _ns = threading.local()
 
 def _get_context_stack():
     if 'context' not in _ns.__dict__:
-        _ns.context = [ {} ]
+        _ns.context = [ ContextFrame() ]
     return _ns.context
 
-class Context():
-    @staticmethod
-    def get(key, default=None):
-        return _get_context_stack()[-1].get(key, default)
+class ContextFrame(dict):
+    def merge(self, other):
+        child = self.copy()
+        child.update(other)
+        return ContextFrame(child)
 
-    def __init__(self, context):
-        self.context = context
+def get_context():
+    return _get_context_stack()[-1]
 
-    def __enter__(self):
-        stack = _get_context_stack()
-        new = stack[-1].copy()
-        new.update(self.context)
-        stack.append(new)
-
-    def __exit__(self, *args):
-        _get_context_stack().pop()
+@contextmanager
+def set_context(**kwargs):
+    stack = _get_context_stack()
+    stack.append(stack[-1].merge(kwargs))
+    yield
+    stack.pop()

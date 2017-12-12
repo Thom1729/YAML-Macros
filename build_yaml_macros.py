@@ -80,6 +80,7 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
         except Exception as e:
             panel.print(str(e))
             done('Failed')
+            raise e
             return
 
         serializer = get_yaml_instance()

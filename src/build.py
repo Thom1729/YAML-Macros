@@ -5,7 +5,7 @@ import runpy
 import ruamel.yaml
 
 from YAMLMacros.api import get_yaml_instance
-from YAMLMacros.api import Context
+from YAMLMacros.api import set_context
 
 class MacroError(Exception):
     def __init__(self, message, node):
@@ -81,9 +81,10 @@ def process_macros(input, arguments=None):
                 macro_multi_constructor(macros)
             )
 
+    from YAMLMacros.lib.arguments import unthunk
     if arguments:
-        with Context(arguments):
-            return yaml.load(input)
+        with set_context(**arguments):
+            return unthunk(yaml.load(input))
     else:
         return yaml.load(input)
 
