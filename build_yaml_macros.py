@@ -30,6 +30,9 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
             view = self.window.active_view()
             source_path = view.file_name()
 
+        with open(source_path, 'r') as source_file:
+            source_text = source_file.read()
+
         if not destination_path:
             destination_path, extension = path.splitext(source_path)
             if extension != '.yaml-macros': raise "Not a .yaml-macros file!"
@@ -51,10 +54,7 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
             phantoms.clear()
 
         try:
-            result = process_macros(
-                view.substr( sublime.Region(0, view.size()) ),
-                arguments=arguments,
-            )
+            result = process_macros(source_text, arguments=arguments)
         except MacroError as e:
             region = sublime.Region(
                 e.node.start_mark.index,
@@ -86,5 +86,5 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
 
         with open(destination_path, 'w') as output_file:
             serializer.dump(result, stream=output_file)
-            log.print('Compiled to %s. (%s)' % (path.basename(destination_path), destination_path))
+            panel.print('Compiled to %s. (%s)' % (path.basename(destination_path), destination_path))
             done('Succeeded')
