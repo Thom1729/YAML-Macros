@@ -1,5 +1,7 @@
 from collections import OrderedDict
 import ruamel.yaml
+from YAMLMacros.src.sublime_resources import SublimeResources
+from os import path
 yaml = ruamel.yaml.YAML()
 
 class Operation():
@@ -32,5 +34,11 @@ def extend(*items):
     base = extension['_base']
     del extension['_base']
 
-    syntax = yaml.load( open(base, 'r') )
+    if path.isfile(base):
+        with open(base, 'r', encoding='utf-8') as base_file:
+            syntax = yaml.load(base_file)
+    else:
+        found_path = SublimeResources.find_resources(base)[0]
+        base_file_contents = SublimeResources.load_resource(found_path)
+        syntax = yaml.load(base_file_contents)
     return Merge(extension).apply(syntax)
