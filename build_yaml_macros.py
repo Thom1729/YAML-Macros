@@ -4,6 +4,7 @@ import sublime_plugin
 import os
 from os import path
 import traceback
+import time
 
 from YAMLMacros.api import process_macros
 from YAMLMacros.api import get_yaml_instance
@@ -17,12 +18,13 @@ PHANTOM_TEMPLATE="""
 """
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
-    def run(self, source_path=None, destination_path=None, working_dir=None, arguments={}):
+    def run(self, *, source_path=None, destination_path=None, working_dir=None, arguments={}, build_id='YAMLMacros'):
+        t0 = time.perf_counter()
+
         if working_dir:
             os.chdir(working_dir)
 
         if source_path:
-            print(source_path)
             view = self.window.find_open_file(source_path)
         else:
             view = self.window.active_view()
@@ -34,9 +36,15 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
 
         arguments['file_path'] = source_path
 
-        panel = OutputPanel(self.window, 'YAMLMacros')
+        panel = OutputPanel(self.window, build_id)
         panel.show()
-        panel.print('Building %s...' % source_path)
+        panel.print('Building %s... (%s)' % (path.basename(source_path), source_path))
+
+        def done(message):
+            panel.print('[{message} in {time:.2} seconds.]\n'.format(
+                message=message,
+                time = time.perf_counter() - t0
+            ))
 
         if view:
             phantoms = PhantomManager(view, 'YAMLMacros', template=PHANTOM_TEMPLATE)
@@ -45,7 +53,6 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
         try:
             result = process_macros(
                 view.substr( sublime.Region(0, view.size()) ),
-                # arguments={ "file_path": source_path },
                 arguments=arguments,
             )
         except MacroError as e:
@@ -68,16 +75,16 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
             if view:
                 phantoms.add(region, e.message)
 
-            panel.print('[Failure]')
+            done('Failed')
             return
         except Exception as e:
             panel.print(str(e))
-            panel.print('[Failure]')
+            done('Failed')
             return
 
         serializer = get_yaml_instance()
 
         with open(destination_path, 'w') as output_file:
             serializer.dump(result, stream=output_file)
-            panel.print('Compiled to %s.' % destination_path)
-            panel.print('[Success]')
+            log.print('Compiled to %s. (%s)' % (path.basename(destination_path), destination_path))
+            done('Succeeded')
