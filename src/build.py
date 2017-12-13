@@ -5,12 +5,14 @@ import runpy
 import ruamel.yaml
 
 from YAMLMacros.api import get_yaml_instance
+from YAMLMacros.api import get_context
 from YAMLMacros.api import set_context
 
 class MacroError(Exception):
     def __init__(self, message, node):
         self.message = message
         self.node = node
+        self.context = get_context()
 
 def load_macros(macro_path):
     sys.path.append(os.getcwd())
@@ -27,22 +29,35 @@ def load_macros(macro_path):
 
 def apply_transformation(loader, node, transform):
     try:
-        if isinstance(node, ruamel.yaml.ScalarNode):
-            return transform(loader.construct_scalar(node))
-        elif isinstance(node, ruamel.yaml.SequenceNode):
-            return transform(*loader.construct_sequence(node))
-        elif isinstance(node, ruamel.yaml.MappingNode):
-            ret = ruamel.yaml.comments.CommentedMap()
-            loader.construct_mapping(node, ret)
+        if getattr(transform, 'raw', False):
+            __eval = lambda node: loader.construct_object(node, deep=True) if node else None
 
-            if any(
-                param.kind == Parameter.VAR_POSITIONAL
-                for name, param in signature(transform).parameters.items()
-            ):
-                # Before Python 3.6, **kwargs will not preserve order.
-                return transform(*ret.items())
-            else:                
-                return transform(**ret)
+            if isinstance(node, ruamel.yaml.ScalarNode):
+                return transform(node, __eval=__eval)
+            elif isinstance(node, ruamel.yaml.SequenceNode):
+                return transform(*node.value, __eval=__eval)
+            elif isinstance(node, ruamel.yaml.MappingNode):
+                return transform(__eval=__eval, **{
+                    loader.construct_object(key) : value
+                    for key, value in node.value
+                })
+        else:
+            if isinstance(node, ruamel.yaml.ScalarNode):
+                return transform(loader.construct_scalar(node))
+            elif isinstance(node, ruamel.yaml.SequenceNode):
+                return transform(*loader.construct_sequence(node))
+            elif isinstance(node, ruamel.yaml.MappingNode):
+                ret = ruamel.yaml.comments.CommentedMap()
+                loader.construct_mapping(node, ret)
+
+                if any(
+                    param.kind == Parameter.VAR_POSITIONAL
+                    for name, param in signature(transform).parameters.items()
+                ):
+                    # Before Python 3.6, **kwargs will not preserve order.
+                    return transform(*ret.items())
+                else:
+                    return transform(**ret)
     except TypeError as e:
         raise TypeError('Failed to transform node: {}\n{}'.format(str(e), node))
 
@@ -60,32 +75,30 @@ def macro_multi_constructor(macros):
 
     return multi_constructor
 
-def process_macros(input, arguments=None):
-    yaml = get_yaml_instance()
+def process_macros(input, arguments={}):
+    with set_context(**arguments):
+        yaml = get_yaml_instance()
 
-    for token in ruamel.yaml.scan(input):
-        if isinstance(token, ruamel.yaml.tokens.DocumentStartToken):
-            break
-        elif isinstance(token, ruamel.yaml.tokens.DirectiveToken) and token.name == 'TAG':
-            handle, prefix = token.value
-            if not prefix.startswith('tag:yaml-macros:'): break
+        for token in ruamel.yaml.scan(input):
+            if isinstance(token, ruamel.yaml.tokens.DocumentStartToken):
+                break
+            elif isinstance(token, ruamel.yaml.tokens.DirectiveToken) and token.name == 'TAG':
+                handle, prefix = token.value
+                if not prefix.startswith('tag:yaml-macros:'): break
 
-            macro_path = prefix.split(':')[2]
+                macro_path = prefix.split(':')[2]
 
-            try:
-                macros = load_macros(macro_path)
-            except ImportError as e:
-                raise MacroError('Failed to load library.', token) from e
+                try:
+                    macros = load_macros(macro_path)
+                except ImportError as e:
+                    raise MacroError('Could not load library.', token) from e
+                except SyntaxError as e:
+                    raise MacroError('Syntax error in library.', token) from e
 
-            yaml.Constructor.add_multi_constructor(handle,
-                macro_multi_constructor(macros)
-            )
+                yaml.Constructor.add_multi_constructor(handle,
+                    macro_multi_constructor(macros)
+                )
 
-    from YAMLMacros.lib.arguments import unthunk
-    if arguments:
-        with set_context(**arguments):
-            return unthunk(yaml.load(input))
-    else:
         return yaml.load(input)
 
 def build_yaml_macros(input, output=None, context=None):
