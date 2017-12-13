@@ -18,8 +18,6 @@ PHANTOM_TEMPLATE="""
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
     def run(self, *, source_path=None, destination_path=None, working_dir=None, arguments={}, build_id='YAMLMacros'):
-        t0 = time.perf_counter()
-
         if working_dir:
             os.chdir(working_dir)
 
@@ -42,43 +40,48 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
         for v in self.window.views():
             v.erase_phantoms('YAMLMacros')
 
-        def done(message):
-            panel.print('[{message} in {time:.2} seconds.]\n'.format(
-                message=message,
-                time = time.perf_counter() - t0
-            ))
+        build(source_text, destination_path, panel, arguments, self.window.find_open_file)
 
-        def handle_error(e):
-            if isinstance(e, MacroError):
-                panel.print()
-                panel.print(e.message)
-                panel.print(str(e.node.start_mark))
+def build(source_text, destination_path, errors, arguments, find_view):
+    def done(message):
+        errors.print('[{message} in {time:.2} seconds.]\n'.format(
+            message=message,
+            time = time.perf_counter() - t0
+        ))
 
-                if e.__cause__:
-                    handle_error(e.__cause__)
+    def handle_error(e):
+        if isinstance(e, MacroError):
+            errors.print('')
+            errors.print(e.message)
+            errors.print(str(e.node.start_mark))
 
-                v = self.window.find_open_file(e.context.get('file_path'))
-                if v:
-                    v.add_phantom(
-                        'YAMLMacros',
-                        sublime.Region(e.node.start_mark.index, e.node.end_mark.index),
-                        PHANTOM_TEMPLATE.format(e.message),
-                        sublime.LAYOUT_BELOW,
-                    )
-            else:
-                panel.print()
-                panel.print(''.join(traceback.format_exception(None, e, e.__traceback__)))
+            if e.__cause__:
+                handle_error(e.__cause__)
 
-        try:
-            result = process_macros(source_text, arguments=arguments)
-        except Exception as e:
-            handle_error(e)
-            done('Failed')
-            return
+            v = find_view(e.context.get('file_path'))
+            if v:
+                v.add_phantom(
+                    'YAMLMacros',
+                    sublime.Region(e.node.start_mark.index, e.node.end_mark.index),
+                    PHANTOM_TEMPLATE.format(e.message),
+                    sublime.LAYOUT_BELOW,
+                )
+        else:
+            errors.print('')
+            errors.print(''.join(traceback.format_exception(None, e, e.__traceback__)))
 
-        serializer = get_yaml_instance()
+    t0 = time.perf_counter()
 
-        with open(destination_path, 'w') as output_file:
-            serializer.dump(result, stream=output_file)
-            panel.print('Compiled to %s. (%s)' % (path.basename(destination_path), destination_path))
-            done('Succeeded')
+    try:
+        result = process_macros(source_text, arguments=arguments)
+    except Exception as e:
+        handle_error(e)
+        done('Failed')
+        return
+
+    serializer = get_yaml_instance()
+
+    with open(destination_path, 'w') as output_file:
+        serializer.dump(result, stream=output_file)
+        errors.print('Compiled to %s. (%s)' % (path.basename(destination_path), destination_path))
+        done('Succeeded')
