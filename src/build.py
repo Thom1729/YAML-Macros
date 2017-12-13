@@ -3,10 +3,12 @@ import sys
 from inspect import signature, Parameter
 import runpy
 import ruamel.yaml
+# import keyword
 
 from YAMLMacros.api import get_yaml_instance
 from YAMLMacros.api import get_context
 from YAMLMacros.api import set_context
+from YAMLMacros.api import apply
 
 class MacroError(Exception):
     def __init__(self, message, node):
@@ -28,38 +30,38 @@ def load_macros(macro_path):
         sys.path.pop()
 
 def apply_transformation(loader, node, transform):
-    try:
-        if getattr(transform, 'raw', False):
-            __eval = lambda node: loader.construct_object(node, deep=True) if node else None
+    if getattr(transform, 'raw', False):
+        def eval(node, deep=True):
+            if node is None:
+                return None
+            elif deep:
+                return loader.construct_object(node, deep=True)
+            elif isinstance(node, ruamel.yaml.ScalarNode):
+                return node
+            elif isinstance(node, ruamel.yaml.SequenceNode):
+                return node.value
+            elif isinstance(node, ruamel.yaml.MappingNode):
+                return { eval(key) : value for key, value in node.value }
 
-            if isinstance(node, ruamel.yaml.ScalarNode):
-                return transform(node, __eval=__eval)
-            elif isinstance(node, ruamel.yaml.SequenceNode):
-                return transform(*node.value, __eval=__eval)
-            elif isinstance(node, ruamel.yaml.MappingNode):
-                return transform(__eval=__eval, **{
-                    loader.construct_object(key) : value
-                    for key, value in node.value
-                })
-        else:
-            if isinstance(node, ruamel.yaml.ScalarNode):
-                return transform(loader.construct_scalar(node))
-            elif isinstance(node, ruamel.yaml.SequenceNode):
-                return transform(*loader.construct_sequence(node))
-            elif isinstance(node, ruamel.yaml.MappingNode):
+        return transform(node, eval)
+    else:
+        if isinstance(node, ruamel.yaml.ScalarNode):
+            args = loader.construct_scalar(node)
+        elif isinstance(node, ruamel.yaml.SequenceNode):
+            args = loader.construct_sequence(node)
+        elif isinstance(node, ruamel.yaml.MappingNode):
+            if any(
+                param.kind == Parameter.VAR_POSITIONAL
+                for name, param in signature(transform).parameters.items()
+            ):
+                # Before Python 3.6, **kwargs will not preserve order.
                 ret = ruamel.yaml.comments.CommentedMap()
                 loader.construct_mapping(node, ret)
+                args = list(ret.items())
+            else:
+                args = loader.construct_mapping(node)
 
-                if any(
-                    param.kind == Parameter.VAR_POSITIONAL
-                    for name, param in signature(transform).parameters.items()
-                ):
-                    # Before Python 3.6, **kwargs will not preserve order.
-                    return transform(*ret.items())
-                else:
-                    return transform(**ret)
-    except TypeError as e:
-        raise TypeError('Failed to transform node: {}\n{}'.format(str(e), node))
+        return apply(transform, args)
 
 def macro_multi_constructor(macros):
     def multi_constructor(loader, suffix, node):
