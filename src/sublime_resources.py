@@ -2,6 +2,7 @@ from os import path, walk, sep
 from zipfile import ZipFile
 import glob
 import fnmatch
+import platform
 try_st = False # set to False for easier testing of our custom methods when using ST
 
 class SublimeResources():
@@ -17,7 +18,6 @@ class SublimeResources():
     #       could return H:/STPortable/3156/Data by seeing the /Data/Packages/ part of the path.
     @classmethod
     def get_data_path(cls):
-        import platform
         return path.expandvars(SublimeResources.platform_data_paths[platform.system()])
 
     @classmethod
@@ -28,7 +28,7 @@ class SublimeResources():
             - files in a .sublime-package file in the Installed Packages folder
             - files in a .sublime-package file in the ST installation Packages folder
               (where no .sublime-package file with the same name exists in the Installed Packages folder)
-            and then sort them according to lexographical order (ignoring duplicates results)
+            and then sort them according to lexographical order (ignoring duplicate results)
              (except with Default coming first and User last)
         """
         try:
@@ -40,19 +40,27 @@ class SublimeResources():
 
         data_path = SublimeResources.get_data_path()
         matches = list()
+        def found_match(path):
+            # switch matches to use `/` folder sep if necessary (i.e. on Windows)
+            if sep == '\\':
+                path = path.replace('\\', '/')
+            matches.append(path)
         
         # loose files in the data Packages folder
         package_name = ''
         # if the glob pattern contains a package name, then only search the relevant package
         if glob_pattern.startswith('Packages/') and not glob_pattern.startswith('Packages/*'):
-            package_name, glob_pattern = SublimeResources.split_package_filepath(glob_pattern)
-        #matches += glob.glob(path.join(data_path, 'Packages', package_name), glob_pattern, recursive=True) # Python 3.3 doesn't support this arg - https://stackoverflow.com/a/2186565/4473405
-        for root, dirnames, filenames in walk(path.join(data_path, 'Packages', package_name), followlinks=True):
-            for match in fnmatch.filter([path.join(root, filename)[len(path.join(data_path, '')):] for filename in filenames], glob_pattern):
-                # switch matches to use `/` folder sep if necessary (i.e. on Windows)
-                if sep == '\\':
-                    match = match.replace('\\', '/')
-                matches.append(match)
+            package_name, _ = SublimeResources.split_package_filepath(glob_pattern)
+        if package_name and not any(wildcard for wildcard in ['?', '*', '['] if wildcard in glob_pattern): #glob.escape(glob_pattern) == glob_pattern:
+            # there are no wildcards in the glob pattern, so try it as an actual path to save time - no need to walk through the folder
+            full_path = path.join(data_path, glob_pattern)
+            if path.isfile(full_path):
+                found_match(glob_pattern)
+        else:
+            for root, dirnames, filenames in walk(path.join(data_path, 'Packages', package_name), followlinks=True):
+                for filepath in [path.join(root, filename)[len(path.join(data_path, '')):] for filename in filenames]:
+                    if SublimeResources.glob_matches_filepath(filepath, glob_pattern):
+                        found_match(filepath)
         
         # for each .sublime-package file in the Installed Packages folder
         if package_name == '':
@@ -60,22 +68,32 @@ class SublimeResources():
         for zipfile_path in glob.iglob(path.join(data_path, 'Installed Packages', package_name + '.sublime-package')):
             matches += SublimeResources.find_files_matching_glob_in_zip(zipfile_path, glob_pattern)
         
-        # TODO: search Packages subfolder of ST installation folder, where no .sublime-package file with the same name exists in the Installed Packages folder)
-        pass
+        # search Packages subfolder of ST installation folder, where no .sublime-package file with the same name exists in the Installed Packages folder)
+        for zipfile_path in glob.iglob(path.join(SublimeResources.get_st_installation_folder(), 'Packages', package_name + '.sublime-package')):
+            if not path.isfile(path.join(data_path, 'Installed Packages', path.basename(zipfile_path))):
+                matches += SublimeResources.find_files_matching_glob_in_zip(zipfile_path, glob_pattern)
         
         # use a set to remove duplicates - no such thing as an ordered set in Python 3.3, so convert back to a list
         matches = list(set(matches))
         return sorted(matches, key=SublimeResources.get_sortkey_for_package_filepath)
 
     @classmethod
+    def glob_matches_filepath(cls, filepath, glob_pattern):
+        return fnmatch.fnmatchcase(path.basename(filepath), glob_pattern)
+
+    @classmethod
+    def get_package_name_from_zipfile_name(cls, zipfile_path):
+        return path.splitext(path.basename(zipfile_path))[0]
+
+    @classmethod
     def find_files_matching_glob_in_zip(cls, zipfile_path, glob_pattern):
-        package_name = path.splitext(path.basename(zipfile_path))[0]
+        package_name = SublimeResources.get_package_name_from_zipfile_name(zipfile_path)
         # get a list of files in the zip
         files = SublimeResources.get_files_in_zip(zipfile_path)
         # format the path to be relative from the Packages folder
         files = ['Packages/' + package_name + '/' + file for file in files]
         # find any that match the glob
-        return [file for file in files if fnmatch.fnmatchcase(file, glob_pattern)]
+        return [file for file in files if SublimeResources.glob_matches_filepath(file, glob_pattern)]
 
     @classmethod
     def split_package_filepath(cls, package_path):
@@ -119,8 +137,10 @@ class SublimeResources():
             if path.isfile(full_path):
                 return SublimeResources.get_file_from_zip(full_path, sub_path)
             
-            # TODO: otherwise, try the ST installation path
-            pass
+            # otherwise, try the ST installation path
+            full_path = path.join(SublimeResources.get_st_installation_folder(), 'Packages', package_name + '.sublime-package')
+            if path.isfile(full_path):
+                return SublimeResources.get_file_from_zip(full_path, sub_path)
 
         raise IOError('resource not found')
 
@@ -134,3 +154,15 @@ class SublimeResources():
         with ZipFile(zipfile_path, 'r') as z:
             with z.open(path_inside_zip, 'r') as file:
                 return file.read()
+
+    @classmethod
+    def get_st_installation_folder(cls):
+        if platform.system() == 'Windows':
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r'*\shell\Open with Sublime Text\command') as key:
+                exe = winreg.QueryValue(key, None)
+        else:
+            # https://stackoverflow.com/a/39149470/4473405
+            import shutil
+            exe = shutil.which('subl')
+        return path.dirname(exe)
