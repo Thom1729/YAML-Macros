@@ -23,7 +23,7 @@ class SublimeResources():
     @classmethod
     def find_resources(cls, glob_pattern):
         """
-            find all files that match the given glob, by searching through:
+            find all files whose names match the given glob, by searching through:
             - loose files in the data Packages folder
             - files in a .sublime-package file in the Installed Packages folder
             - files in a .sublime-package file in the ST installation Packages folder
@@ -46,33 +46,23 @@ class SublimeResources():
                 path = path.replace('\\', '/')
             matches.append(path)
         
-        # loose files in the data Packages folder
-        package_name = ''
-        # if the glob pattern contains a package name, then only search the relevant package
-        if glob_pattern.startswith('Packages/') and not glob_pattern.startswith('Packages/*'):
-            package_name, _ = SublimeResources.split_package_filepath(glob_pattern)
-        if package_name and not any(wildcard for wildcard in ['?', '*', '['] if wildcard in glob_pattern): #glob.escape(glob_pattern) == glob_pattern:
-            # there are no wildcards in the glob pattern, so try it as an actual path to save time - no need to walk through the folder
-            full_path = path.join(data_path, glob_pattern)
-            if path.isfile(full_path):
-                found_match(glob_pattern)
-        else:
-            for root, dirnames, filenames in walk(path.join(data_path, 'Packages', package_name), followlinks=True):
+        # if a path separator exists in the glob pattern then there is no need to try to find anything - no filename will match
+        if not '/' in glob_pattern:
+            # loose files in the data Packages folder
+            for root, dirnames, filenames in walk(path.join(data_path, 'Packages'), followlinks=True):
                 for filepath in [path.join(root, filename)[len(path.join(data_path, '')):] for filename in filenames]:
                     if SublimeResources.glob_matches_filepath(filepath, glob_pattern):
                         found_match(filepath)
-        
-        # for each .sublime-package file in the Installed Packages folder
-        if package_name == '':
-            package_name = '*'
-        for zipfile_path in glob.iglob(path.join(data_path, 'Installed Packages', package_name + '.sublime-package')):
-            matches += SublimeResources.find_files_matching_glob_in_zip(zipfile_path, glob_pattern)
-        
-        # search Packages subfolder of ST installation folder, where no .sublime-package file with the same name exists in the Installed Packages folder)
-        for zipfile_path in glob.iglob(path.join(SublimeResources.get_st_installation_folder(), 'Packages', package_name + '.sublime-package')):
-            if not path.isfile(path.join(data_path, 'Installed Packages', path.basename(zipfile_path))):
+            
+            # for each .sublime-package file in the Installed Packages folder
+            for zipfile_path in glob.iglob(path.join(data_path, 'Installed Packages', '*.sublime-package')):
                 matches += SublimeResources.find_files_matching_glob_in_zip(zipfile_path, glob_pattern)
-        
+            
+            # search Packages subfolder of ST installation folder, where no .sublime-package file with the same name exists in the Installed Packages folder)
+            for zipfile_path in glob.iglob(path.join(SublimeResources.get_st_installation_folder(), 'Packages', '*.sublime-package')):
+                if not path.isfile(path.join(data_path, 'Installed Packages', path.basename(zipfile_path))):
+                    matches += SublimeResources.find_files_matching_glob_in_zip(zipfile_path, glob_pattern)
+            
         # use a set to remove duplicates - no such thing as an ordered set in Python 3.3, so convert back to a list
         matches = list(set(matches))
         return sorted(matches, key=SublimeResources.get_sortkey_for_package_filepath)
