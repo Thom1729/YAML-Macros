@@ -12,10 +12,17 @@ class SublimeResources():
         'Darwin': r'~/Library/Application Support/Sublime Text 3'
     }
 
-    # TODO: probably it would be useful if this method also took an optional argument for a path to check,
-    #       to see if it could be part of a data folder, to allow it to also work with portable instances of ST
-    #       i.e. given an arg value of H:/STPortable/3156/Data/Packages/JavaScript/JavaScript.sublime-syntax, it
-    #       could return H:/STPortable/3156/Data by seeing the /Data/Packages/ part of the path.
+    @classmethod
+    def get_portable_data_path(cls, potential_parent_of):
+        """Given a path like H:\\STPortable\\3156\\Data\\Packages\\JavaScript\\JavaScript.sublime-syntax,
+           it will correctly determine that the data folder is H:\\STPortable\\3156\\Data\\"""
+        after_split = potential_parent_of.split('/Data/Packages/', 1)
+        if len(after_split) == 1 and sep == '\\':
+            after_split = potential_parent_of.split('\\Data\\Packages\\', 1)
+        if len(after_split) == 1:
+            return None
+        return path.join(after_split[0], 'Data', '')
+    
     @classmethod
     def get_data_path(cls):
         return path.expandvars(SublimeResources.platform_data_paths[platform.system()])
