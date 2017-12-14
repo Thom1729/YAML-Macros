@@ -48,8 +48,7 @@ class SublimeResources():
             package_name, glob_pattern = SublimeResources.split_package_filepath(glob_pattern)
         #matches += glob.glob(path.join(data_path, 'Packages', package_name), glob_pattern, recursive=True) # Python 3.3 doesn't support this arg - https://stackoverflow.com/a/2186565/4473405
         for root, dirnames, filenames in walk(path.join(data_path, 'Packages', package_name), followlinks=True):
-            for filename in fnmatch.filter(filenames, glob_pattern):
-                match = path.join(root, filename)[len(path.join(data_path, '')):]
+            for match in fnmatch.filter([path.join(root, filename)[len(path.join(data_path, '')):] for filename in filenames], glob_pattern):
                 # switch matches to use `/` folder sep if necessary (i.e. on Windows)
                 if sep == '\\':
                     match = match.replace('\\', '/')
@@ -59,12 +58,7 @@ class SublimeResources():
         if package_name == '':
             package_name = '*'
         for zipfile_path in glob.iglob(path.join(data_path, 'Installed Packages', package_name + '.sublime-package')):
-            # get a list of files in the zip
-            files = SublimeResources.get_files_in_zip(zipfile_path)
-            package_name = path.splitext(path.basename(zipfile_path))[0]
-            files = ['Packages/' + package_name + '/' + file for file in files]
-            # find any that match the glob
-            matches += [file for file in files if fnmatch.fnmatchcase(file, glob_pattern)]
+            matches += SublimeResources.find_files_matching_glob_in_zip(zipfile_path, glob_pattern)
         
         # TODO: search Packages subfolder of ST installation folder, where no .sublime-package file with the same name exists in the Installed Packages folder)
         pass
@@ -72,6 +66,16 @@ class SublimeResources():
         # use a set to remove duplicates - no such thing as an ordered set in Python 3.3, so convert back to a list
         matches = list(set(matches))
         return sorted(matches, key=SublimeResources.get_sortkey_for_package_filepath)
+
+    @classmethod
+    def find_files_matching_glob_in_zip(cls, zipfile_path, glob_pattern):
+        package_name = path.splitext(path.basename(zipfile_path))[0]
+        # get a list of files in the zip
+        files = SublimeResources.get_files_in_zip(zipfile_path)
+        # format the path to be relative from the Packages folder
+        files = ['Packages/' + package_name + '/' + file for file in files]
+        # find any that match the glob
+        return [file for file in files if fnmatch.fnmatchcase(file, glob_pattern)]
 
     @classmethod
     def split_package_filepath(cls, package_path):
