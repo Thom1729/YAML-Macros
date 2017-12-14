@@ -48,8 +48,7 @@ def foreach(node, eval):
         else:
             raise TypeError('Invalid collection.')
 
-        if as_:
-            key_binding, value_binding = get_binding_map(as_)
+        key_binding, value_binding = get_binding_map(as_)
 
         return [
             _with({
