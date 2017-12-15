@@ -3,12 +3,11 @@ import sys
 from inspect import signature, Parameter
 import runpy
 import ruamel.yaml
-# import keyword
 
-from YAMLMacros.api import get_yaml_instance
-from YAMLMacros.api import get_context
-from YAMLMacros.api import set_context
-from YAMLMacros.api import apply
+from YAMLMacros.src.yaml_provider import get_yaml_instance
+from YAMLMacros.src.context import get_context
+from YAMLMacros.src.context import set_context
+from YAMLMacros.src.util import apply
 
 class MacroError(Exception):
     def __init__(self, message, node):
