@@ -76,9 +76,25 @@ def macro_multi_constructor(macros):
 
     return multi_constructor
 
+# cache = {}
+
 def process_macros(input, arguments={}):
     with set_context(**arguments):
         yaml = get_yaml_instance()
+
+        # tree = cache.get(hash(input), None)
+        # if not tree:
+        #     print('miss')
+        #     import io
+
+        #     tree = ruamel.yaml.compose(io.StringIO(input))
+        #     cache[hash(input)] = tree
+
+        import io
+        # print(yaml.__dict__)
+        print(yaml.composer)
+        # tree = ruamel.yaml.compose(io.StringIO(input), Loader=yaml.load)
+        tree = yaml.composer.compose(io.StringIO(input))
 
         for token in ruamel.yaml.scan(input):
             if isinstance(token, ruamel.yaml.tokens.DocumentStartToken):
@@ -96,11 +112,13 @@ def process_macros(input, arguments={}):
                 except SyntaxError as e:
                     raise MacroError('Syntax error in library.', token) from e
 
-                yaml.Constructor.add_multi_constructor(handle,
+                yaml.Constructor.add_multi_constructor(prefix,
                     macro_multi_constructor(macros)
                 )
 
-        return yaml.load(input)
+        # return yaml.load(input)
+        print(yaml.constructor)
+        return yaml.constructor.construct_document(tree)
 
 def build_yaml_macros(input, output=None, context=None):
     syntax = process_macros(input, context)
