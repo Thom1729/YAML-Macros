@@ -3,7 +3,7 @@ from functools import reduce
 
 from YAMLMacros.api import process_macros
 from YAMLMacros.api import get_yaml_instance
-from YAMLMacros.src.sublime_resources import SublimeResources
+from YAMLMacros.api import get_st_data_path, get_st_installation_folder, find_st_resources, load_st_resource
 
 class Operation():
     def __init__(self, extension):
@@ -46,9 +46,10 @@ def include(path):
         )
 
 def include_resource(filename_pattern):
-    res_lookup = SublimeResources()
-    found_path = res_lookup.find_resources(filename_pattern)[-1]
-    file_contents = res_lookup.load_resource(found_path)
+    data_path = get_st_data_path()
+    st_installation_path = get_st_installation_folder()
+    found_path = find_st_resources(data_path, st_installation_path, filename_pattern)[-1]
+    file_contents = load_st_resource(data_path, st_installation_path, found_path)
     return process_macros(
         file_contents,
         arguments={ "file_path": found_path },
