@@ -156,7 +156,7 @@ class SublimeResources():
     def get_file_from_zip(cls, zipfile_path, path_inside_zip):
         with ZipFile(zipfile_path, 'r') as z:
             with z.open(path_inside_zip, 'r') as file:
-                return file.read()
+                return file.read().decode(encoding='utf-8')
 
     @classmethod
     def get_st_installation_folder(cls):
