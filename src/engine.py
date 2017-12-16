@@ -2,7 +2,7 @@ import os
 import sys
 import io
 from inspect import signature, Parameter
-import runpy
+import importlib
 import ruamel.yaml
 import functools
 
@@ -20,11 +20,11 @@ class MacroError(Exception):
 def load_macros(macro_path):
     sys.path.append(os.getcwd())
     try:
-        module = runpy.run_module(macro_path)
+        module = importlib.import_module(macro_path)
 
         return {
             name.rstrip('_'): func
-            for name, func in module.items()
+            for name, func in module.__dict__.items()
             if callable(func) and not name.startswith('_')
         }
     finally:
