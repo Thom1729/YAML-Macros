@@ -82,42 +82,27 @@ def process_macros(input, arguments={}):
     with set_context(**arguments):
         yaml = get_yaml_instance()
 
-        # tree = cache.get(hash(input), None)
-        # if not tree:
-        #     print('miss')
-        #     import io
-
-        #     tree = ruamel.yaml.compose(io.StringIO(input))
-        #     cache[hash(input)] = tree
-
         import io
-        # print(yaml.__dict__)
-        print(yaml.composer)
-        # tree = ruamel.yaml.compose(io.StringIO(input), Loader=yaml.load)
-        tree = yaml.composer.compose(io.StringIO(input))
+        stream = io.StringIO(input)
 
-        for token in ruamel.yaml.scan(input):
-            if isinstance(token, ruamel.yaml.tokens.DocumentStartToken):
-                break
-            elif isinstance(token, ruamel.yaml.tokens.DirectiveToken) and token.name == 'TAG':
-                handle, prefix = token.value
-                if not prefix.startswith('tag:yaml-macros:'): break
+        yaml.get_constructor_parser(stream)
+        tree = yaml.composer.get_single_node()
 
-                macro_path = prefix.split(':')[2]
+        for handle, tag in yaml.parser.tag_handles.items():
+            if not tag.startswith('tag:yaml-macros:'): continue
+            macro_path = tag.split(':')[2]
 
-                try:
-                    macros = load_macros(macro_path)
-                except ImportError as e:
-                    raise MacroError('Could not load library.', token) from e
-                except SyntaxError as e:
-                    raise MacroError('Syntax error in library.', token) from e
+            try:
+                macros = load_macros(macro_path)
+            except ImportError as e:
+                raise MacroError('Could not load library.', token) from e
+            except SyntaxError as e:
+                raise MacroError('Syntax error in library.', token) from e
 
-                yaml.Constructor.add_multi_constructor(prefix,
-                    macro_multi_constructor(macros)
-                )
+            yaml.Constructor.add_multi_constructor(handle,
+                macro_multi_constructor(macros)
+            )
 
-        # return yaml.load(input)
-        print(yaml.constructor)
         return yaml.constructor.construct_document(tree)
 
 def build_yaml_macros(input, output=None, context=None):
