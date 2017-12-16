@@ -1,8 +1,10 @@
 import os
 import sys
+import io
 from inspect import signature, Parameter
 import runpy
 import ruamel.yaml
+import functools
 
 from YAMLMacros.src.yaml_provider import get_yaml_instance
 from YAMLMacros.src.context import get_context
@@ -76,28 +78,29 @@ def macro_multi_constructor(macros):
 
     return multi_constructor
 
-# cache = {}
+@functools.lru_cache(maxsize=16)
+def get_parse(input):
+    yaml = get_yaml_instance()
+    stream = io.StringIO(input)
+
+    yaml.get_constructor_parser(stream)
+    tree = yaml.composer.get_single_node()
+    macros = [
+        (handle, tag.split(':')[2])
+        for handle, tag in yaml.parser.tag_handles.items()
+        if tag.startswith('tag:yaml-macros:')
+    ]
+
+    return (tree, macros)
 
 def process_macros(input, arguments={}):
     with set_context(**arguments):
+        tree, macros = get_parse(input)
+
         yaml = get_yaml_instance()
 
-        import io
-        stream = io.StringIO(input)
-
-        yaml.get_constructor_parser(stream)
-        tree = yaml.composer.get_single_node()
-
-        for handle, tag in yaml.parser.tag_handles.items():
-            if not tag.startswith('tag:yaml-macros:'): continue
-            macro_path = tag.split(':')[2]
-
-            try:
-                macros = load_macros(macro_path)
-            except ImportError as e:
-                raise MacroError('Could not load library.', token) from e
-            except SyntaxError as e:
-                raise MacroError('Syntax error in library.', token) from e
+        for handle, macro_path in macros:
+            macros = load_macros(macro_path)
 
             yaml.Constructor.add_multi_constructor(handle,
                 macro_multi_constructor(macros)
