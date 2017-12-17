@@ -17,7 +17,7 @@ PHANTOM_TEMPLATE="""
 """
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
-    def run(self, *, source_path=None, destination_path=None, working_dir=None, arguments={}, build_id='YAMLMacros'):
+    def run(self, *, source_path=None, destination_path=None, working_dir=None, arguments={}, build_id=None):
         t0 = time.perf_counter()
 
         if working_dir:
@@ -34,6 +34,9 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
             if extension != '.yaml-macros': raise "Not a .yaml-macros file!"
 
         arguments['file_path'] = source_path
+
+        if not build_id:
+            build_id = 'YAMLMacros-%d' % (time.time() * 1000)
 
         panel = OutputPanel(self.window, build_id)
         panel.show()
