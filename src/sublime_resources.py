@@ -133,3 +133,22 @@ def get_st_installation_folder():
         import shutil
         exe = shutil.which('subl')
     return path.dirname(exe)
+
+def get_st_resource(resource, data_path_possible_parent_of=None):
+    data_path = None
+    installation_path = get_st_installation_folder()
+    if data_path_possible_parent_of:
+        data_path = get_portable_st_data_path(data_path_possible_parent_of)
+        if data_path:
+            installation_path = data_path.rsplit('Data', 1)[0]
+    if not data_path:
+        data_path = get_st_data_path()
+
+    if not resource.startswith('Packages/'):
+        resource = find_st_resources(data_path, installation_path, resource)
+        if len(resource) > 0:
+            resource = resource[-1]
+        else:
+            resource = ''
+
+    return (resource, load_st_resource(data_path, installation_path, resource))

@@ -3,7 +3,7 @@ from functools import reduce
 
 from YAMLMacros.api import process_macros
 from YAMLMacros.api import get_yaml_instance
-from YAMLMacros.api import get_st_data_path, get_st_installation_folder, find_st_resources, load_st_resource
+from YAMLMacros.api import get_st_resource
 
 class Operation():
     def __init__(self, extension):
@@ -45,14 +45,11 @@ def include(path):
             arguments={ "file_path": path },
         )
 
-def include_resource(filename_pattern):
-    data_path = get_st_data_path()
-    st_installation_path = get_st_installation_folder()
-    found_path = find_st_resources(data_path, st_installation_path, filename_pattern)[-1]
-    file_contents = load_st_resource(data_path, st_installation_path, found_path)
+def include_resource(resource):
+    file_path, file_contents = get_st_resource(resource)
     return process_macros(
         file_contents,
-        arguments={ "file_path": found_path },
+        arguments={ "file_path": file_path },
     )
 
 def apply(base, *extensions):
