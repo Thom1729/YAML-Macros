@@ -7,8 +7,8 @@ import platform
 
 platform_data_paths = {
     'Windows': r'%APPDATA%\Sublime Text 3',
-    'Linux': r'~/.config/sublime-text-3',
-    'Darwin': r'~/Library/Application Support/Sublime Text 3'
+    'Linux': path.expanduser('~/.config/sublime-text-3'),
+    'Darwin': path.expanduser(r'~/Library/Application Support/Sublime Text 3'),
 }
 
 def get_portable_st_data_path(potential_parent_of):
