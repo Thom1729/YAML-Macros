@@ -4,12 +4,9 @@ import sublime_plugin
 import os
 from os import path
 
-from YAMLMacros.src.build import build
+from YAMLMacros.api import build
 from YAMLMacros.src.output_panel import OutputPanel
-
-PHANTOM_TEMPLATE="""
-<div class="error">{}</div>
-"""
+from YAMLMacros.src.error_highlighter import ErrorHighlighter
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
     def run(self, *, source_path=None, destination_path=None, working_dir=None, arguments={}, build_id='YAMLMacros'):
@@ -28,9 +25,13 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
 
         arguments['file_path'] = source_path
 
-        panel = OutputPanel(self.window, build_id)
-
-        build(source_text, destination_path, panel, arguments, self.window)
+        build(
+            source_text=source_text,
+            destination_path=destination_path,
+            arguments=arguments,
+            error_stream=OutputPanel(self.window, build_id),
+            error_highlighter=ErrorHighlighter(self.window, 'YAMLMacros'),
+        )
 
 class ClearViewCommand(sublime_plugin.TextCommand):
     def run(self, edit):
