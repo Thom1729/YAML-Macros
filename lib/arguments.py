@@ -1,13 +1,16 @@
-from YAMLMacros.api import get_context
-from YAMLMacros.api import set_context
 from YAMLMacros.api import apply as _apply
 
 import copy
 
-def argument(name, default=None):
-    return get_context().get(name, default)
+def argument(node, eval, arguments):
+    def ret(name, default=None):
+        return arguments.get(name, default)
 
-def if_(node, eval):
+    return _apply(ret, node.value)
+
+argument.raw = True
+
+def if_(node, eval, arguments):
     def ret(condition, then, else_=None):
         if eval(condition):
             return eval(then)
@@ -18,11 +21,7 @@ def if_(node, eval):
 
 if_.raw = True
 
-def _with(bindings, node, eval):
-    with set_context(**bindings):
-        return eval(node)
-
-def foreach(node, eval):
+def foreach(node, eval, arguments):
     def ret(collection, value, *, as_=None):
 
         def get_binding_map(as_):
@@ -51,16 +50,20 @@ def foreach(node, eval):
         key_binding, value_binding = get_binding_map(as_)
 
         return [
-            _with({
+            eval(copy.deepcopy(value), {
                 key_binding: k,
                 value_binding: v,
-            }, copy.deepcopy(value), eval)
+            })
             for k, v in it
         ]
     return _apply(ret, eval(node, deep=False))
 
 foreach.raw = True
 
-def format(string, bindings=None):
-    bindings = bindings or get_context()
-    return string.format(**bindings)
+def format(node, eval, arguments):
+    def ret(string, bindings=arguments):
+        return _apply(string.format, bindings)
+
+    return _apply(ret, node.value)
+
+format.raw = True
