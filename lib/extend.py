@@ -1,16 +1,8 @@
 from collections import OrderedDict
 from functools import reduce
 
-from YAMLMacros.api import process_macros
 from YAMLMacros.api import get_yaml_instance
-from YAMLMacros.api import get_st_resource
-
-def _flatten(*args):
-    for arg in args:
-        if isinstance(arg, list):
-            yield from _flatten(*arg)
-        elif arg is not None:
-            yield arg
+from YAMLMacros.src.util import deprecated, flatten
 
 class Operation():
     def __init__(self, extension):
@@ -36,7 +28,7 @@ class All(Operation):
     def apply(self, base):
         return reduce(
             lambda ret, ext: ext.apply(ret),
-            list(_flatten(*self.extension)),
+            flatten(*self.extension),
             base,
         )
 
@@ -45,23 +37,10 @@ def prepend(*items): return Prepend(list(items))
 def all(*items): return All(list(items))
 
 
-def include(path):
-    with open(path, 'r') as file:
-        return process_macros(
-            file.read(),
-            arguments={ "file_path": path },
-        )
-
-def include_resource(resource):
-    file_path, file_contents = get_st_resource(resource)
-    return process_macros(
-        file_contents,
-        arguments={ "file_path": file_path },
-    )
-
 def apply(base, *extensions):
     return all(*extensions).apply(base)
 
+@deprecated('Use !apply instead.')
 def extend(*items):
     extension = OrderedDict(items)
     base = extension['_base']
