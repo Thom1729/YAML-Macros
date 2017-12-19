@@ -48,6 +48,8 @@ def apply_transformation(loader, node, transform):
             elif isinstance(node, ruamel.yaml.MappingNode):
                 return { eval(key) : value for key, value in node.value }
 
+        eval.loader = loader
+
         return transform(node, arguments=get_context(), eval=eval)
     else:
         if isinstance(node, ruamel.yaml.ScalarNode):

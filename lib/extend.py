@@ -4,17 +4,20 @@ from functools import reduce
 from YAMLMacros.api import get_yaml_instance
 from YAMLMacros.src.util import deprecated, flatten
 
+from ruamel.yaml.comments import CommentedOrderedMap
+
 class Operation():
     def __init__(self, extension):
         self.extension = extension
 
 class Merge(Operation):
     def apply(self, base):
-        ret = base.copy()
+        ret = base
 
         for key, value in self.extension.items():
-            if key in base and isinstance(value, Operation):
-                ret[key] = value.apply(base[key])
+            # print(type(value))
+            if isinstance(value, Operation):
+                ret[key] = value.apply(base.get(key, None))
             else:
                 ret[key] = value
 
@@ -32,7 +35,16 @@ class All(Operation):
             base,
         )
 
-def merge(*items): return Merge(OrderedDict(items))
+def merge(node, eval, arguments):
+    loader = eval.loader
+
+    ret = CommentedOrderedMap()
+    loader.construct_mapping(node, ret)
+
+    return Merge(ret)
+
+merge.raw = True
+
 def prepend(*items): return Prepend(list(items))
 def all(*items): return All(list(items))
 
