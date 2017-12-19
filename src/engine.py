@@ -9,7 +9,7 @@ import functools
 from YAMLMacros.src.yaml_provider import get_yaml_instance
 from YAMLMacros.src.context import get_context
 from YAMLMacros.src.context import set_context
-from YAMLMacros.src.util import apply
+from YAMLMacros.src.util import apply, merge
 
 class MacroError(Exception):
     def __init__(self, message, node):
@@ -72,8 +72,8 @@ def macro_multi_constructor(macros):
     def multi_constructor(loader, suffix, node):
         try:
             macro = macros[suffix]
-        except KeyError:
-            raise MacroError('Unknown macro "%s".' % suffix, node)
+        except KeyError as e:
+            raise MacroError('Unknown macro "%s".' % suffix, node) from e
 
         try:
             return apply_transformation(loader, node, macros[suffix])
@@ -104,7 +104,7 @@ def process_macros(input, arguments={}):
         yaml = get_yaml_instance()
 
         for handle, macro_path in macros:
-            macros = load_macros(macro_path)
+            macros = merge(*(load_macros(path) for path in macro_path.split(',')))
 
             yaml.Constructor.add_multi_constructor(handle,
                 macro_multi_constructor(macros)

@@ -4,9 +4,9 @@ import copy
 
 def argument(node, eval, arguments):
     def ret(name, default=None):
-        return arguments.get(name, default)
+        return arguments.get(name.value, eval(default))
 
-    return _apply(ret, node.value)
+    return _apply(ret, eval(node, deep=False))
 
 argument.raw = True
 
@@ -61,9 +61,14 @@ def foreach(node, eval, arguments):
 foreach.raw = True
 
 def format(node, eval, arguments):
-    def ret(string, bindings=arguments):
-        return _apply(string.format, bindings)
+    def ret(string, bindings=None):
+        if bindings:
+            bindings = eval(bindings)
+        else:
+            bindings = arguments
 
-    return _apply(ret, node.value)
+        return _apply(string.value.format, bindings)
+
+    return _apply(ret, eval(node, deep=False))
 
 format.raw = True
