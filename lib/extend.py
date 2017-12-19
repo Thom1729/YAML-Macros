@@ -5,6 +5,13 @@ from YAMLMacros.api import process_macros
 from YAMLMacros.api import get_yaml_instance
 from YAMLMacros.api import get_st_resource
 
+def _flatten(*args):
+    for arg in args:
+        if isinstance(arg, list):
+            yield from _flatten(*arg)
+        elif arg is not None:
+            yield arg
+
 class Operation():
     def __init__(self, extension):
         self.extension = extension
@@ -29,8 +36,8 @@ class All(Operation):
     def apply(self, base):
         return reduce(
             lambda ret, ext: ext.apply(ret),
-            [x for x in self.extension if x != None],
-            base
+            list(_flatten(*self.extension)),
+            base,
         )
 
 def merge(*items): return Merge(OrderedDict(items))
