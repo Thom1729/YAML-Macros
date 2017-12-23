@@ -1,3 +1,5 @@
+NOTE: YAML Macros 3.0.0 has been released. All pre-existing functionality should be stable; however, some new features may be in flux. See the release notes for more details.
+
 # YAML Macros
 
 A macro system for YAML files powered by Python. Designed for Sublime Text syntax development.
