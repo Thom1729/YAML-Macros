@@ -1,11 +1,19 @@
 import keyword
 from functools import wraps
+import ruamel.yaml
+
+def fix_keywords(d):
+    return {
+        (k+'_' if keyword.iskeyword(k) else k) : v
+        for k, v in d.items()
+    }
 
 def apply(fn, args):
     if isinstance(args, dict):
-        return fn(**{
-            (k+'_' if keyword.iskeyword(k) else k) : v for k, v in args.items()
-        })
+        # return fn(**{
+        #     (k+'_' if keyword.iskeyword(k) else k) : v for k, v in args.items()
+        # })
+        return fn(**fix_keywords(args))
     elif isinstance(args, list):
         return fn(*args)
     else:
@@ -39,4 +47,22 @@ def merge(*dicts):
     ret = {}
     for d in dicts:
         ret.update(d)
+    return ret
+
+def raw_macro(fn):
+    def ret(node, eval, arguments):
+        extras = { 'eval': eval, 'arguments': arguments }
+
+        if isinstance(node, ruamel.yaml.ScalarNode):
+            return fn(node, **extras)
+        elif isinstance(node, ruamel.yaml.SequenceNode):
+            return fn(*node.value, **extras)
+        elif isinstance(node, ruamel.yaml.MappingNode):
+            kwargs = fix_keywords({ eval(k): v for k, v in node.value })
+            kwargs.update(**extras)
+            return fn(**kwargs)
+
+    ret.raw = True
+    ret.wrapped = fn
+
     return ret
