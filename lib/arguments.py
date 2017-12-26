@@ -13,7 +13,7 @@ def argument(name, default=None, *, eval, arguments):
         return None
 
 @raw_macro
-def if_(condition, then, else_=None, *, eval, arguments):
+def if_(condition, then, else_=None, *, eval):
     if eval(condition):
         return eval(then)
     elif else_:
@@ -22,7 +22,7 @@ def if_(condition, then, else_=None, *, eval, arguments):
         return None
 
 @raw_macro
-def foreach(in_, value, *, as_=None, eval, arguments):
+def foreach(in_, value, *, as_=None, eval):
     collection = eval(in_)
 
     if isinstance(collection, dict):
