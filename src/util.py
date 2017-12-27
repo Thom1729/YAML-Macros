@@ -1,11 +1,17 @@
 import keyword
 from functools import wraps
+import ruamel.yaml
+from inspect import signature, Parameter
+
+def fix_keywords(d):
+    return {
+        (k+'_' if keyword.iskeyword(k) else k) : v
+        for k, v in d.items()
+    }
 
 def apply(fn, args):
     if isinstance(args, dict):
-        return fn(**{
-            (k+'_' if keyword.iskeyword(k) else k) : v for k, v in args.items()
-        })
+        return fn(**fix_keywords(args))
     elif isinstance(args, list):
         return fn(*args)
     else:
@@ -39,4 +45,36 @@ def merge(*dicts):
     ret = {}
     for d in dicts:
         ret.update(d)
+    return ret
+
+def raw_macro(fn):
+    def ret(node, eval, arguments):
+        extras = { 'eval': eval, 'arguments': arguments }
+        extras = {
+            k:v for k, v in extras.items() if k in arg_names
+        }
+
+        if isinstance(node, ruamel.yaml.ScalarNode):
+            return fn(node, **extras)
+        elif isinstance(node, ruamel.yaml.SequenceNode):
+            return fn(*node.value, **extras)
+        elif isinstance(node, ruamel.yaml.MappingNode):
+            kwargs = fix_keywords({ eval(k): v for k, v in node.value })
+            collisions = (set(kwargs) & set(extras))
+            if collisions:
+                raise TypeError('Keyword parameters %s would be shadowed by raw macro parameters.' % str(collisions))
+
+            return fn(**merge(kwargs, extras))
+
+    if any(
+        param.kind == Parameter.VAR_KEYWORD
+        for name, param in signature(fn).parameters.items()
+    ):
+        raise TypeError('Raw macros using this decorator may not use **kwargs.')
+
+    arg_names = { name for name, param in signature(fn).parameters.items() }
+
+    ret.raw = True
+    ret.wrapped = fn
+
     return ret

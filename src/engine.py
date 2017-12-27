@@ -32,21 +32,12 @@ def load_macros(macro_path):
 
 def apply_transformation(loader, node, transform):
     if getattr(transform, 'raw', False):
-        def eval(node, arguments=None, *, deep=True):
+        def eval(node, arguments=None):
             if arguments:
                 with set_context(**arguments):
-                    return eval(node, deep=deep)
+                    return eval(node)
 
-            if node is None:
-                return None
-            elif deep:
-                return loader.construct_object(node, deep=True)
-            elif isinstance(node, ruamel.yaml.ScalarNode):
-                return node
-            elif isinstance(node, ruamel.yaml.SequenceNode):
-                return node.value
-            elif isinstance(node, ruamel.yaml.MappingNode):
-                return { eval(key) : value for key, value in node.value }
+            return loader.construct_object(node, deep=True)
 
         return transform(node, arguments=get_context(), eval=eval)
     else:
