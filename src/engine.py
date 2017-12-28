@@ -95,7 +95,7 @@ def process_macros(input, arguments={}):
         yaml = get_yaml_instance()
 
         for handle, macro_path in macros:
-            macros = merge(*(load_macros(path) for path in macro_path.split(',')))
+            macros = merge(*[load_macros(path) for path in macro_path.split(',')])
 
             yaml.Constructor.add_multi_constructor(handle,
                 macro_multi_constructor(macros)
