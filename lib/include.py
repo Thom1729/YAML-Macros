@@ -1,5 +1,4 @@
 from YAMLMacros.api import process_macros
-from YAMLMacros.api import get_st_resource
 
 def include(path):
     with open(path, 'r') as file:
@@ -9,7 +8,10 @@ def include(path):
         )
 
 def include_resource(resource):
-    file_path, file_contents = get_st_resource(resource)
+    import sublime
+    import os
+    file_path = os.path.join( sublime.packages_path(), resource )
+    file_contents = sublime.load_resource(resource)
     return process_macros(
         file_contents,
         arguments={ "file_path": file_path },
