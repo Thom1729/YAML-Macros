@@ -22,6 +22,10 @@ def if_(condition, then, else_=None, *, eval):
         return None
 
 @raw_macro
+def with_(bindings, value, *, eval):
+    return eval(value, eval(bindings))
+
+@raw_macro
 def foreach(in_, value, *, as_=None, eval):
     collection = eval(in_)
 
