@@ -4,9 +4,9 @@ import sublime_plugin
 import os
 from os import path
 
-from YAMLMacros.api import build
-from YAMLMacros.src.output_panel import OutputPanel
-from YAMLMacros.src.error_highlighter import ErrorHighlighter
+from yamlmacros import build
+from yamlmacros.src.output_panel import OutputPanel
+from yamlmacros.src.error_highlighter import ErrorHighlighter
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
     def run(self, *, source_path=None, destination_path=None, working_dir=None, arguments={}, build_id='YAMLMacros'):
