@@ -21,7 +21,8 @@ class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
 
         if not destination_path:
             destination_path, extension = path.splitext(source_path)
-            if extension != '.yaml-macros': raise "Not a .yaml-macros file!"
+            if extension != '.yaml-macros':
+                raise TypeError("Not a .yaml-macros file! Hint: add .yaml-macros extension.")
 
         arguments['file_path'] = source_path
 
