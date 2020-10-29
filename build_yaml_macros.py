@@ -6,11 +6,14 @@ from YAMLMacros.src.output_panel import OutputPanel
 from YAMLMacros.src.error_highlighter import ErrorHighlighter
 
 class BuildYamlMacrosCommand(sublime_plugin.WindowCommand):
-    def run(self, *, source_path=None, target_path=None, working_dir=None, arguments={}, build_id='YAMLMacros'):
+    def run(self, *, source_path=None, target_path=None, working_dir=None, arguments=None, build_id='YAMLMacros'):
         error_stream = OutputPanel(self.window, build_id)
 
         if source_path is None:
             source_path = self.window.active_view().file_name()
+
+        if arguments is None:
+            arguments = {}
 
         arguments['file_path'] = source_path
         arguments['working_dir'] = working_dir
