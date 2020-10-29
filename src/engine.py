@@ -87,7 +87,9 @@ def get_parse(input):
 
     return (tree, macros)
 
-def process_macros(input, arguments={}):
+def process_macros(input, arguments=None):
+    if arguments is None:
+        arguments = {}
     with set_context(**arguments):
         tree, macros = get_parse(input)
 

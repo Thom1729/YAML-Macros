@@ -9,10 +9,12 @@ def clone_class(klass):
     )
 
 def get_yaml_instance(
-    version = (1, 2),
-    indent = { 'mapping': 2, 'sequence': 4, 'offset': 2 },
+    version=(1, 2),
+    indent=None,
     **kwargs
 ):
+    if indent is None:
+        indent = {'mapping': 2, 'sequence': 4, 'offset': 2}
     yaml = ruamel.yaml.YAML(**kwargs)
 
     yaml.Constructor = clone_class(yaml.Constructor)
