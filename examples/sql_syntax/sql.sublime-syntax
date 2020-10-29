@@ -55,7 +55,7 @@ contexts:
         -   - meta_scope: meta.from.sql
             - match: ''
               pop: true
-        -                    
+        -
 
             - match: '{{var_name}}'
               scope: variable.other.table.sql
@@ -127,7 +127,7 @@ contexts:
 
     - include: else-pop
 
-  variable:             
+  variable:
 
     - match: '{{var_name}}'
       scope: variable.other.table.sql

@@ -2,11 +2,13 @@ from collections import OrderedDict
 
 _RULE_KEYS = ['match', 'scope', 'captures', 'push', 'set', 'pop', 'embed', 'escape', 'with_prototype']
 
+
 def _rule_key_order(key):
     try:
         return _RULE_KEYS.index(key)
     except ValueError:
         return 0
+
 
 def rule(**args):
     return OrderedDict(sorted(
@@ -14,11 +16,13 @@ def rule(**args):
         key=lambda kv: _rule_key_order(kv[0]),
     ))
 
+
 def meta(scope):
     return [
         rule(meta_scope=scope),
         rule(match=r'', pop=True),
     ]
+
 
 def expect(expr, scope, set_context=None):
     ret = [
@@ -33,11 +37,13 @@ def expect(expr, scope, set_context=None):
 
     return ret
 
+
 def pop_on(expr):
     return rule(
         match=r'(?=(?:%s))' % expr,
         pop=True
     )
+
 
 def stack(*contexts):
     return [

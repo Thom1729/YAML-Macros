@@ -1,10 +1,11 @@
 import sublime
 
-PHANTOM_TEMPLATE="""
+PHANTOM_TEMPLATE = """
 <div class="error">{}</div>
 """
 
-class ErrorHighlighter():
+
+class ErrorHighlighter:
     def __init__(self, window, name, *, clear=True):
         self.window = window
         self.name = name

@@ -1,7 +1,8 @@
+import copy
+
 from YAMLMacros.api import apply as _apply
 from YAMLMacros.api import raw_macro
 
-import copy
 
 @raw_macro
 def argument(name, default=None, *, eval, arguments):
@@ -12,6 +13,7 @@ def argument(name, default=None, *, eval, arguments):
     else:
         return None
 
+
 @raw_macro
 def if_(condition, then, else_=None, *, eval):
     if eval(condition):
@@ -21,9 +23,11 @@ def if_(condition, then, else_=None, *, eval):
     else:
         return None
 
+
 @raw_macro
 def with_(bindings, value, *, eval):
     return eval(value, eval(bindings))
+
 
 @raw_macro
 def foreach(in_, value, *, as_=None, eval):
@@ -63,6 +67,7 @@ def foreach(in_, value, *, as_=None, eval):
         })
         for k, v in items
     ]
+
 
 @raw_macro
 def format(string, bindings=None, *, eval, arguments):

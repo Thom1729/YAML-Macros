@@ -1,12 +1,10 @@
 import os
-from os import path
-import traceback
 import time
+import traceback
+from os import path
 
-from YAMLMacros.api import process_macros
-from YAMLMacros.api import get_yaml_instance
-from YAMLMacros.src.engine import MacroError
-
+from YAMLMacros.src.engine import MacroError, process_macros
+from YAMLMacros.src.yaml_provider import get_yaml_instance
 
 EXT_DOT_SUBLIME_SYNTAX_YAML_MACROS = '.sublime-syntax.yaml-macros'
 
@@ -66,7 +64,8 @@ def build(source_path, target_path, error_stream, arguments, error_highlighter):
             # Just a regular message, shouldn't be right-aligned.
             error_stream.print()
             error_stream.print('Error: Source is not a YAML Macros file!')
-            error_stream.print('Hint: Make sure source file has `{}` extension.'.format(EXT_DOT_SUBLIME_SYNTAX_YAML_MACROS))
+            error_stream.print('Hint: Make sure source file has `{}` extension.'
+                               .format(EXT_DOT_SUBLIME_SYNTAX_YAML_MACROS))
             error_stream.print()
             raise SilentException()
 
