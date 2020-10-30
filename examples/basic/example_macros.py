@@ -1,2 +1,2 @@
-def fancy(str):
-    return '=== %s ===' % str.capitalize()
+def fancy(string):
+    return '=== %s ===' % string.capitalize()

@@ -1,5 +1,7 @@
-import ruamel.yaml
 from collections import OrderedDict
+
+import ruamel.yaml
+
 
 def clone_class(klass):
     return type(
@@ -8,10 +10,11 @@ def clone_class(klass):
         {}
     )
 
+
 def get_yaml_instance(
-    version=(1, 2),
-    indent=None,
-    **kwargs
+        version=(1, 2),
+        indent=None,
+        **kwargs
 ):
     if indent is None:
         indent = {'mapping': 2, 'sequence': 4, 'offset': 2}
@@ -21,8 +24,9 @@ def get_yaml_instance(
     yaml.Representer = clone_class(yaml.Representer)
 
     yaml.version = version
-    yaml.indent(**indent);
+    yaml.indent(**indent)
 
-    yaml.Representer.add_representer(OrderedDict, lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data))
+    yaml.Representer.add_representer(OrderedDict,
+                                     lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data))
 
     return yaml

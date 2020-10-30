@@ -1,11 +1,11 @@
-class OutputPanel():
+class OutputPanel:
     def __init__(self, window, name, *, clear=True, show=True):
         self.window = window
         self.name = name
 
         self.view = (
-            self.window.find_output_panel(self.name) or
-            self.window.create_output_panel(self.name)
+                self.window.find_output_panel(self.name) or
+                self.window.create_output_panel(self.name)
         )
 
         if clear: self.clear()

@@ -1,11 +1,26 @@
-from YAMLMacros.lib.syntax import meta, expect, pop_on, stack, rule
+from YAMLMacros.lib.syntax import expect, meta, pop_on, rule, stack
 
-def word(str):
-    return r'(?:\b(?i:%s)\b)' % str
+__all__ = [
+    # re-export macros from lib.syntax
+    'expect',
+    'meta',
+    'pop_on',
+    'rule',
+    'stack',
+    # define new macros
+    'word',
+    'identifier',
+    'expect_identifier',
+]
+
+
+def word(string):
+    return r'(?:\b(?i:%s)\b)' % string
+
 
 def identifier(scope):
     return [
-        rule( match=r'{{var_name}}', scope=scope, pop=True ),
+        rule(match=r'{{var_name}}', scope=scope, pop=True),
         rule(
             match=r'"',
             scope="punctuation.definition.string.begin.sql",
@@ -15,7 +30,8 @@ def identifier(scope):
                 rule(match=r'"', scope="punctuation.definition.string.end.sql", pop=True),
             ],
         ),
-    ] 
+    ]
+
 
 def expect_identifier(scope):
-    return identifier(scope) + [ rule(match=r'(?=\S)', pop=True) ]
+    return identifier(scope) + [rule(match=r'(?=\S)', pop=True)]
